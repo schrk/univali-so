@@ -1,0 +1,10 @@
+bin/
+obj/
+*.o
+*.d
+data/logs/
+data/banco.txt
+resultados/*.csv
+resultados/graficos/
+docs/relatorio/*.aux
+docs/relatorio/*.log

@@ -1,0 +1,198 @@
+<svg viewBox="0 0 1000 592" role="img" aria-label="Fluxo em três faixas: processo cliente à esquerda, canais IPC POSIX no centro (ring buffer em memória compartilhada com semáforos nomeados e FIFO de respostas) e processo servidor à direita, com thread despachante, fila de tarefas, pool de threads e a seção crítica protegendo a tabela de registros." xmlns="http://www.w3.org/2000/svg"><style>
+:root{--surface:#ffffff;--surface-2:#f7f9fb;--ink:#16202b;--ink-2:#495a6b;--ink-3:#75858f;
+--line:#d4dce4;--line-strong:#b4c1cd;--flow:#0f766e;--flow-bg:#e6f1f0;--crit:#a8531a;--crit-bg:#fbf0e6;}
+
+text{font-family:"IBM Plex Sans",Arial,sans-serif}
+.lane-frame { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; }
+.bx { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+.bx-in { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; }
+.bx-crit { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 1.3; }
+.slot-full { fill: var(--flow-bg); stroke: var(--flow); stroke-width: 1; }
+.slot-free { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 2, 2; }
+.lane-hd { font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.13em; fill: var(--ink-2); }
+.t { font-family: var(--sans); font-size: 11px; fill: var(--ink); }
+.t2 { font-family: var(--sans); font-size: 10px; fill: var(--ink-2); }
+.m { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
+.m2 { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-3); }
+.cap { font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.12em; fill: var(--ink-3); }
+.cap-crit { font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.12em; fill: var(--crit); }
+.ar { stroke: var(--flow); stroke-width: 1.5; fill: none; }
+.ar-w { stroke: var(--crit); stroke-width: 1.5; fill: none; }
+.ar-r { stroke: var(--flow); stroke-width: 1.5; fill: none; stroke-dasharray: 5, 3; }
+.alab { font-family: var(--mono); font-size: 9.5px; fill: var(--flow); }
+.alab-w { font-family: var(--mono); font-size: 9.5px; fill: var(--crit); }
+.num { fill: var(--surface); stroke: var(--flow); stroke-width: 1.2; }
+.num-w { fill: var(--surface); stroke: var(--crit); stroke-width: 1.2; }
+.numt { font-family: var(--sans); font-size: 9.5px; font-weight: 600; fill: var(--flow); }
+.numt-w { font-family: var(--sans); font-size: 9.5px; font-weight: 600; fill: var(--crit); }
+.axis { stroke: var(--line-strong); stroke-width: 1; }
+.guide { stroke: var(--crit); stroke-width: 1; stroke-dasharray: 3, 3; }
+.bar-r { fill: var(--flow-bg); stroke: var(--flow); stroke-width: 1; }
+.bar-w { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 1.2; }
+.bar-wait { fill: none; stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 3, 3; }</style>
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--flow)"></path>
+            </marker>
+            <marker id="ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--crit)"></path>
+            </marker>
+          </defs>
+
+          <!-- lane headers -->
+          <text class="lane-hd" x="125" y="24" text-anchor="middle">PROCESSO CLIENTE</text>
+          <text class="m2" x="125" y="36" text-anchor="middle">bin/cliente</text>
+          <text class="lane-hd" x="415" y="24" text-anchor="middle">CANAIS IPC (POSIX)</text>
+          <text class="m2" x="415" y="36" text-anchor="middle">fronteira entre processos</text>
+          <text class="lane-hd" x="790" y="24" text-anchor="middle">PROCESSO SERVIDOR</text>
+          <text class="m2" x="790" y="36" text-anchor="middle">bin/servidor</text>
+
+          <rect class="lane-frame" x="10" y="44" width="230" height="528" rx="5"></rect>
+          <rect class="lane-frame" x="300" y="44" width="230" height="528" rx="5"></rect>
+          <rect class="lane-frame" x="590" y="44" width="400" height="528" rx="5"></rect>
+
+          <!-- A1 parser -->
+          <rect class="bx" x="22" y="70" width="206" height="58" rx="4"></rect>
+          <text class="m" x="125" y="92" text-anchor="middle">cliente/parser.cpp</text>
+          <text class="t2" x="125" y="110" text-anchor="middle">texto SQL simples → Requisicao</text>
+
+          <!-- A2 produtor -->
+          <rect class="bx" x="22" y="160" width="206" height="58" rx="4"></rect>
+          <text class="m" x="125" y="182" text-anchor="middle">ipc/shm_ring.hpp</text>
+          <text class="t2" x="125" y="200" text-anchor="middle">thread produtora: push()</text>
+
+          <!-- A annotation -->
+          <rect class="bx-in" x="22" y="300" width="206" height="86" rx="4" stroke-dasharray="4 3"></rect>
+          <text class="cap" x="125" y="320" text-anchor="middle">O CLIENTE TEM 2 THREADS</text>
+          <text class="m2" x="36" y="340">produtora  → ring</text>
+          <text class="m2" x="36" y="356">receptora  ← FIFO</text>
+          <text class="t2" x="125" y="376" text-anchor="middle">vários clientes no mesmo ring</text>
+
+          <!-- B1 shm -->
+          <rect class="bx" x="312" y="70" width="206" height="190" rx="4"></rect>
+          <text class="m" x="415" y="90" text-anchor="middle">/minidb_requests</text>
+          <text class="m2" x="415" y="105" text-anchor="middle">shm_open + ftruncate + mmap</text>
+          <rect class="slot-full" x="324" y="116" width="29" height="28" rx="2"></rect>
+          <rect class="slot-full" x="356" y="116" width="29" height="28" rx="2"></rect>
+          <rect class="slot-full" x="388" y="116" width="29" height="28" rx="2"></rect>
+          <rect class="slot-free" x="420" y="116" width="29" height="28" rx="2"></rect>
+          <rect class="slot-free" x="452" y="116" width="29" height="28" rx="2"></rect>
+          <rect class="slot-free" x="484" y="116" width="29" height="28" rx="2"></rect>
+          <text class="cap" x="415" y="159" text-anchor="middle">RING BUFFER DE REQUISIÇÕES</text>
+          <rect class="bx-in" x="324" y="168" width="182" height="80" rx="3"></rect>
+          <text class="cap" x="415" y="184" text-anchor="middle">SEMÁFOROS NOMEADOS</text>
+          <text class="m2" x="336" y="202">sem_vazias</text>
+          <text class="m2" x="336" y="217">sem_cheias</text>
+          <text class="m2" x="336" y="232">sem_mutex_ring</text>
+          <text class="m2" x="497" y="202" text-anchor="end">= N</text>
+          <text class="m2" x="497" y="217" text-anchor="end">= 0</text>
+          <text class="m2" x="497" y="232" text-anchor="end">= 1</text>
+
+          <!-- B annotation -->
+          <rect class="bx-in" x="312" y="300" width="206" height="86" rx="4" stroke-dasharray="4 3"></rect>
+          <text class="cap" x="415" y="320" text-anchor="middle">CICLO DE VIDA</text>
+          <text class="m2" x="326" y="340">servidor cria os canais</text>
+          <text class="m2" x="326" y="356">shm_unlink · sem_unlink</text>
+          <text class="t2" x="415" y="376" text-anchor="middle">removidos no encerramento</text>
+
+          <!-- C1 despachante -->
+          <rect class="bx" x="602" y="70" width="376" height="58" rx="4"></rect>
+          <text class="m" x="790" y="92" text-anchor="middle">servidor/main.cpp — thread despachante</text>
+          <text class="t2" x="790" y="110" text-anchor="middle">consome slots do ring e nunca espera pelo banco</text>
+
+          <!-- C2 fila -->
+          <rect class="bx" x="602" y="160" width="376" height="58" rx="4"></rect>
+          <text class="m" x="790" y="182" text-anchor="middle">servidor/fila_tarefas.cpp</text>
+          <text class="t2" x="790" y="200" text-anchor="middle">fila bloqueante: pthread_mutex_t + pthread_cond_t</text>
+
+          <!-- C3 pool -->
+          <rect class="bx" x="602" y="250" width="376" height="74" rx="4"></rect>
+          <text class="cap" x="790" y="268" text-anchor="middle">POOL DE THREADS — pthread_create × N</text>
+          <rect class="bx-in" x="612" y="278" width="84" height="34" rx="3"></rect>
+          <text class="m" x="654" y="299" text-anchor="middle">W0</text>
+          <rect class="bx-in" x="704" y="278" width="84" height="34" rx="3"></rect>
+          <text class="m" x="746" y="299" text-anchor="middle">W1</text>
+          <rect class="bx-in" x="796" y="278" width="84" height="34" rx="3"></rect>
+          <text class="m" x="838" y="299" text-anchor="middle">W2</text>
+          <rect class="bx-in" x="888" y="278" width="84" height="34" rx="3"></rect>
+          <text class="m" x="930" y="299" text-anchor="middle">W3</text>
+
+          <!-- C4 critical section -->
+          <rect class="bx-crit" x="602" y="356" width="376" height="104" rx="4"></rect>
+          <text class="cap-crit" x="790" y="375" text-anchor="middle">SEÇÃO CRÍTICA</text>
+          <text class="m" x="790" y="393" text-anchor="middle">servidor/rw_lock.cpp — pthread_mutex_t + sem_t</text>
+          <rect class="bx-in" x="614" y="402" width="352" height="46" rx="3"></rect>
+          <text class="m" x="790" y="421" text-anchor="middle">banco: std::vector&lt;Registro&gt;</text>
+          <text class="t2" x="790" y="438" text-anchor="middle">tabela compartilhada por todas as threads</text>
+
+          <!-- C5 respostas + persistência -->
+          <rect class="bx" x="602" y="490" width="376" height="68" rx="4"></rect>
+          <text class="m" x="790" y="510" text-anchor="middle">ipc/fifo_channel.cpp + common/log.cpp</text>
+          <text class="t2" x="790" y="527" text-anchor="middle">grava resposta, persiste tabela e registra o log</text>
+          <text class="m2" x="790" y="543" text-anchor="middle">data/banco.txt · data/logs/servidor.log</text>
+
+          <!-- B2 FIFO -->
+          <rect class="bx" x="312" y="490" width="206" height="68" rx="4"></rect>
+          <text class="m" x="415" y="514" text-anchor="middle">/tmp/minidb_resp</text>
+          <text class="t2" x="415" y="531" text-anchor="middle">FIFO nomeado (mkfifo)</text>
+          <text class="m2" x="415" y="547" text-anchor="middle">canal 2 — respostas</text>
+
+          <!-- A3 receptora -->
+          <rect class="bx" x="22" y="490" width="206" height="68" rx="4"></rect>
+          <text class="m" x="125" y="514" text-anchor="middle">cliente/main.cpp</text>
+          <text class="t2" x="125" y="531" text-anchor="middle">thread receptora: read() bloqueante</text>
+          <text class="m2" x="125" y="547" text-anchor="middle">confere e imprime a resposta</text>
+
+          <!-- arrows: request path -->
+          <line class="ar" x1="125" y1="128" x2="125" y2="158" marker-end="url(#ah)"></line>
+          <circle class="num" cx="125" cy="143" r="8.5"></circle>
+          <text class="numt" x="125" y="146.5" text-anchor="middle">1</text>
+          <text class="alab" x="140" y="146.5">monta struct</text>
+
+          <line class="ar" x1="228" y1="189" x2="310" y2="189" marker-end="url(#ah)"></line>
+          <text class="alab" x="269" y="177" text-anchor="middle">post(cheias)</text>
+          <circle class="num" cx="269" cy="189" r="8.5"></circle>
+          <text class="numt" x="269" y="192.5" text-anchor="middle">2</text>
+
+          <line class="ar" x1="518" y1="99" x2="600" y2="99" marker-end="url(#ah)"></line>
+          <text class="alab" x="559" y="87" text-anchor="middle">wait(cheias)</text>
+          <circle class="num" cx="559" cy="99" r="8.5"></circle>
+          <text class="numt" x="559" y="102.5" text-anchor="middle">3</text>
+
+          <line class="ar" x1="790" y1="128" x2="790" y2="158" marker-end="url(#ah)"></line>
+          <circle class="num" cx="790" cy="143" r="8.5"></circle>
+          <text class="numt" x="790" y="146.5" text-anchor="middle">4</text>
+          <text class="alab" x="805" y="146.5">enfileira</text>
+
+          <line class="ar" x1="790" y1="218" x2="790" y2="248" marker-end="url(#ah)"></line>
+          <circle class="num" cx="790" cy="233" r="8.5"></circle>
+          <text class="numt" x="790" y="236.5" text-anchor="middle">5</text>
+          <text class="alab" x="805" y="236.5">pop() em paralelo</text>
+
+          <!-- arrows: critical section access -->
+          <line class="ar-r" x1="700" y1="324" x2="700" y2="354" marker-end="url(#ah)"></line>
+          <circle class="num" cx="700" cy="339" r="8.5"></circle>
+          <text class="numt" x="700" y="342.5" text-anchor="middle">6</text>
+          <text class="alab" x="688" y="342.5" text-anchor="end">SELECT</text>
+
+          <line class="ar-w" x1="880" y1="324" x2="880" y2="354" marker-end="url(#ahw)"></line>
+          <circle class="num-w" cx="880" cy="339" r="8.5"></circle>
+          <text class="numt-w" x="880" y="342.5" text-anchor="middle">7</text>
+          <text class="alab-w" x="868" y="342.5" text-anchor="end">INSERT/UPDATE/DELETE</text>
+
+          <!-- arrows: response path -->
+          <line class="ar" x1="790" y1="460" x2="790" y2="488" marker-end="url(#ah)"></line>
+          <circle class="num" cx="790" cy="474" r="8.5"></circle>
+          <text class="numt" x="790" y="477.5" text-anchor="middle">8</text>
+          <text class="alab" x="805" y="477.5">resultado da operação</text>
+
+          <line class="ar" x1="600" y1="524" x2="520" y2="524" marker-end="url(#ah)"></line>
+          <text class="alab" x="558" y="512" text-anchor="middle">write(resp)</text>
+          <circle class="num" cx="560" cy="524" r="8.5"></circle>
+          <text class="numt" x="560" y="527.5" text-anchor="middle">9</text>
+
+          <line class="ar" x1="310" y1="524" x2="230" y2="524" marker-end="url(#ah)"></line>
+          <text class="alab" x="270" y="512" text-anchor="middle">read()</text>
+          <circle class="num" cx="270" cy="524" r="8.5"></circle>
+          <text class="numt" x="270" y="527.5" text-anchor="middle">10</text>
+        </svg>
