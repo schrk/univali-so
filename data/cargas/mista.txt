@@ -1,0 +1,17 @@
+# Mista: leituras e escritas alternadas, forçando a troca entre acesso
+# compartilhado e exclusivo a cada poucas requisições.
+INSERT id=20 nome='Carla'
+SELECT nome WHERE id=20
+UPDATE nome='Carla Dias' WHERE id=20
+SELECT nome WHERE id=20
+INSERT id=21 nome='Bruno'
+SELECT nome WHERE id=21
+DELETE WHERE id=20
+SELECT nome WHERE id=20
+INSERT id=22 nome='Julia'
+UPDATE nome='Julia Reis' WHERE id=22
+SELECT nome WHERE id=22
+SELECT nome WHERE id=21
+DELETE WHERE id=21
+INSERT id=23 nome='Marcos'
+SELECT nome WHERE id=23

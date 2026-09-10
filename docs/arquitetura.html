@@ -8,6 +8,7 @@
     --line:#d4dce4; --line-strong:#b4c1cd;
     --flow:#0f766e; --flow-bg:#e6f1f0;
     --crit:#a8531a; --crit-bg:#fbf0e6;
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
     --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
     --serif:"IBM Plex Serif",Georgia,"Times New Roman",serif;
     --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
@@ -19,6 +20,7 @@
       --line:#2a3440; --line-strong:#3d4a57;
       --flow:#41bcac; --flow-bg:#122a2c;
       --crit:#e2974c; --crit-bg:#2b2118;
+      --s1:#3987e5; --s2:#d95926; --s3:#199e70;
     }
   }
   :root[data-theme="dark"] {
@@ -27,6 +29,7 @@
     --line:#2a3440; --line-strong:#3d4a57;
     --flow:#41bcac; --flow-bg:#122a2c;
     --crit:#e2974c; --crit-bg:#2b2118;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   }
 
   body {
@@ -97,6 +100,15 @@
   .bar-w { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 1.2; }
   .bar-wait { fill: none; stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 3 3; }
 
+  .s1 { stroke: var(--s1); } .s2 { stroke: var(--s2); } .s3 { stroke: var(--s3); }
+  .f1 { fill: var(--s1); } .f2 { fill: var(--s2); } .f3 { fill: var(--s3); }
+  .serie { fill: none; stroke-width: 2; }
+  .pt { stroke: var(--surface); stroke-width: 1.5; }
+  .grade { stroke: var(--line); stroke-width: 1; }
+  .eixo { stroke: var(--line-strong); stroke-width: 1; }
+  .marca-nucleos { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 4 4; }
+  .val { font-family: var(--mono); font-size: 10px; }
+
   .legend { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--sans); font-size: 12px; color: var(--ink-2); }
   .legend span { display: inline-flex; align-items: center; gap: 8px; }
   .swatch { width: 26px; height: 0; border-top-width: 2px; border-top-style: solid; }
@@ -128,6 +140,8 @@
   }
   pre .c { color: var(--ink-3); }
   pre .k { color: var(--flow); }
+  kbd { font-family: var(--mono); font-size: 0.85em; background: var(--surface-2);
+        border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 3px; padding: 1px 5px; }
   code { font-family: var(--mono); font-size: 0.9em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px; }
 
   .split { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
@@ -161,6 +175,7 @@
       <span class="tag">sem_t nomeado</span>
       <span class="tag">FIFO (mkfifo)</span>
       <span class="tag">2 binários</span>
+      <span class="tag">implementado</span>
     </div>
   </header>
 
@@ -279,9 +294,9 @@
 
           <!-- B2 FIFO -->
           <rect class="bx" x="312" y="490" width="206" height="68" rx="4"></rect>
-          <text class="m" x="415" y="514" text-anchor="middle">/tmp/minidb_resp</text>
+          <text class="m" x="415" y="514" text-anchor="middle">/tmp/minidb_resp.&lt;pid&gt;</text>
           <text class="t2" x="415" y="531" text-anchor="middle">FIFO nomeado (mkfifo)</text>
-          <text class="m2" x="415" y="547" text-anchor="middle">canal 2 — respostas</text>
+          <text class="m2" x="415" y="547" text-anchor="middle">canal 2 — um por cliente</text>
 
           <!-- A3 receptora -->
           <rect class="bx" x="22" y="490" width="206" height="68" rx="4"></rect>
@@ -424,6 +439,110 @@
     </figure>
   </section>
 
+
+  <section>
+    <div class="prose">
+      <p class="eyebrow">FIGURA 3 &middot; MEDIÇÃO</p>
+      <h2>O que o sistema entrega na prática</h2>
+      <p>Medido em uma máquina de 4 núcleos, 10.000 requisições por execução, mediana de 3 repetições,
+        com um custo de processamento simulado de 200&nbsp;µs por requisição — sem esse custo o trabalho por
+        requisição é tão curto que a medição vira um teste do IPC, não do pool.</p>
+    </div>
+
+    <figure>
+      <div class="canvas">
+        <svg viewBox="0 0 760 370" role="img" aria-label="Throughput por número de threads: com 100% de leitura o sistema escala de 4.505 para 17.968 requisições por segundo entre 1 e 8 threads, estabilizando em 4 núcleos; com 70% de leitura vai de 4.517 a 6.840; só com escrita fica plano em torno de 4.000.">
+          <line class="grade" x1="78" y1="300" x2="700" y2="300"></line>
+          <line class="grade" x1="78" y1="233.2" x2="700" y2="233.2"></line>
+          <line class="grade" x1="78" y1="166.3" x2="700" y2="166.3"></line>
+          <line class="grade" x1="78" y1="99.5" x2="700" y2="99.5"></line>
+          <text class="m2" x="70" y="303" text-anchor="end">0</text>
+          <text class="m2" x="70" y="236" text-anchor="end">5 mil</text>
+          <text class="m2" x="70" y="169" text-anchor="end">10 mil</text>
+          <text class="m2" x="70" y="103" text-anchor="end">15 mil</text>
+
+          <line class="marca-nucleos" x1="492.7" y1="46" x2="492.7" y2="300"></line>
+          <text class="cap" x="497" y="52">4 NÚCLEOS DA MÁQUINA</text>
+
+          <line class="eixo" x1="78" y1="300" x2="700" y2="300"></line>
+          <text class="m2" x="78" y="318" text-anchor="middle">1</text>
+          <text class="m2" x="285.3" y="318" text-anchor="middle">2</text>
+          <text class="m2" x="492.7" y="318" text-anchor="middle">4</text>
+          <text class="m2" x="700" y="318" text-anchor="middle">8</text>
+          <text class="t2" x="389" y="340" text-anchor="middle">threads no pool</text>
+          <text class="t2" x="20" y="173" text-anchor="middle" transform="rotate(-90 20 173)">requisições por segundo</text>
+
+          <polyline class="serie s1" points="78,239.8 285.3,181.9 492.7,63.1 700,59.8"></polyline>
+          <polyline class="serie s2" points="78,239.6 285.3,217.0 492.7,211.5 700,208.6"></polyline>
+          <polyline class="serie s3" points="78,240.0 285.3,240.4 492.7,247.5 700,247.6"></polyline>
+
+          <circle class="pt f1" cx="78" cy="239.8" r="4"></circle>
+          <circle class="pt f1" cx="285.3" cy="181.9" r="4"></circle>
+          <circle class="pt f1" cx="492.7" cy="63.1" r="4"></circle>
+          <circle class="pt f1" cx="700" cy="59.8" r="4"></circle>
+          <rect class="pt f2" x="74" y="235.6" width="8" height="8" rx="1"></rect>
+          <rect class="pt f2" x="281.3" y="213" width="8" height="8" rx="1"></rect>
+          <rect class="pt f2" x="488.7" y="207.5" width="8" height="8" rx="1"></rect>
+          <rect class="pt f2" x="696" y="204.6" width="8" height="8" rx="1"></rect>
+          <polygon class="pt f3" points="78,235.5 82.5,243.5 73.5,243.5"></polygon>
+          <polygon class="pt f3" points="285.3,235.9 289.8,243.9 280.8,243.9"></polygon>
+          <polygon class="pt f3" points="492.7,243 497.2,251 488.2,251"></polygon>
+          <polygon class="pt f3" points="700,243.1 704.5,251.1 695.5,251.1"></polygon>
+
+          <text class="val f1" x="708" y="62">17.968</text>
+          <text class="val f2" x="708" y="212">6.840</text>
+          <text class="val f3" x="708" y="255">3.916</text>
+
+          <line class="serie s1" x1="78" y1="26" x2="100" y2="26"></line>
+          <text class="t2" x="106" y="30">100% leitura</text>
+          <line class="serie s2" x1="195" y1="26" x2="217" y2="26"></line>
+          <text class="t2" x="223" y="30">70% leitura</text>
+          <line class="serie s3" x1="305" y1="26" x2="327" y2="26"></line>
+          <text class="t2" x="333" y="30">só escrita</text>
+        </svg>
+      </div>
+      <figcaption>A carga só de leitura escala quase linearmente até o número de núcleos da máquina
+        (1&nbsp;→&nbsp;2&nbsp;→&nbsp;4 threads rendem 1,00&nbsp;→&nbsp;1,96&nbsp;→&nbsp;3,93×) e depois estabiliza,
+        porque os leitores dividem o lock. A carga só de escrita não escala em nenhum ponto: a seção crítica é
+        exclusiva, e acrescentar threads só aumenta a fila na porta.</figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2">Threads</th>
+            <th colspan="2">100% leitura</th>
+            <th colspan="2">70% leitura</th>
+            <th colspan="2">Só escrita</th>
+          </tr>
+          <tr>
+            <th>req/s</th><th>espera no lock</th>
+            <th>req/s</th><th>espera no lock</th>
+            <th>req/s</th><th>espera no lock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>4.505</td><td>0,17 µs</td><td>4.517</td><td>0,15 µs</td><td>4.489</td><td>0,12 µs</td></tr>
+          <tr><td>2</td><td>8.837</td><td>0,17 µs</td><td>6.210</td><td>88 µs</td><td>4.458</td><td>208 µs</td></tr>
+          <tr><td>4</td><td>17.721</td><td>0,15 µs</td><td>6.623</td><td>354 µs</td><td>3.928</td><td>774 µs</td></tr>
+          <tr><td>8</td><td>17.968</td><td>0,13 µs</td><td>6.840</td><td>925 µs</td><td>3.916</td><td>1.799 µs</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note">A coluna da espera no lock é a que fecha o argumento: na carga de leitura ela fica em
+      décimos de microssegundo por mais threads que existam — os leitores entram juntos. Na carga de escrita ela
+      cresce proporcionalmente ao número de threads, porque cada escritor espera todos os anteriores. É o mesmo
+      fenômeno da figura 2, agora em número.</p>
+
+    <p class="note">Sem custo simulado (<code>--custo-us 0</code>) o resultado se inverte: uma thread rende
+      ~105.000 req/s e mais threads pioram para ~40.000. Com trabalho de poucos nanossegundos por requisição, o
+      custo de sincronizar as threads supera o que o paralelismo economiza — o gargalo passa a ser o IPC, não o
+      banco. Vale registrar isso no relatório: é a lei de Amdahl aparecendo na prática, e não um defeito da
+      implementação.</p>
+  </section>
+
   <section>
     <div class="prose">
       <p class="eyebrow">ESTRUTURA</p>
@@ -462,7 +581,7 @@
 │       └── gerador_carga.hpp     <span class="c"># carga de arquivo ou sintética (mix leitura/escrita)</span>
 │
 ├── src/                          <span class="c"># espelha include/, 1 .cpp por cabeçalho</span>
-│   ├── common/   protocolo.cpp · log.cpp
+│   ├── common/   protocolo.cpp · config.cpp · log.cpp
 │   ├── ipc/      shm_region.cpp · named_sem.cpp · shm_ring.cpp · fifo_channel.cpp
 │   ├── servidor/
 │   │   ├── <span class="k">main.cpp</span>               <span class="c"># BINÁRIO 1: cria canais, sobe o pool, despacha</span>
@@ -627,19 +746,74 @@
 
   <section>
     <div class="prose">
-      <p class="eyebrow">SEQUÊNCIA DE IMPLEMENTAÇÃO</p>
-      <h2>Ordem que mantém o sistema executável desde o primeiro dia</h2>
-      <ol class="steps">
-        <li><code>common/</code> + <code>Makefile</code>: dois binários que compilam e imprimem versão.</li>
-        <li><code>ipc/</code>: cliente envia uma requisição, servidor imprime — sem banco ainda.</li>
-        <li><code>banco</code> + <code>executor</code> com uma única thread: as quatro operações corretas.</li>
-        <li><code>fila_tarefas</code> + <code>pool_threads</code>: N workers, ainda com mutex simples.</li>
-        <li><code>rw_lock</code>: leitura compartilhada e escrita exclusiva no lugar do mutex único.</li>
-        <li>FIFO de respostas, log e persistência fechando o ciclo até o cliente.</li>
-        <li><code>tests/</code> + <code>benchmark.sh</code>: medições, CSVs e gráficos do relatório.</li>
-        <li>Relatório em PDF e ensaio da apresentação com o repositório público.</li>
-      </ol>
+      <p class="eyebrow">EXECUÇÃO</p>
+      <h2>Como rodar</h2>
+      <p>Só precisa de <code>g++</code> com C++17 e um Linux com POSIX shm e semáforos nomeados.
+        Nenhuma dependência externa.</p>
+    </div>
+
+<pre><span class="c"># compila os dois binários</span>
+make
+
+<span class="c"># demonstração ponta a ponta: sobe o servidor, roda um cliente, mostra o log</span>
+make demo
+
+<span class="c"># manualmente, em dois terminais</span>
+./bin/servidor --threads 4
+./bin/cliente  --carga data/cargas/basica.txt
+
+<span class="c"># vários processos cliente disputando o mesmo ring</span>
+./scripts/multi_cliente.sh 4 500
+
+<span class="c"># os três testes</span>
+make testes &amp;&amp; ./bin/test_ipc &amp;&amp; ./bin/test_rw_lock &amp;&amp; ./bin/test_corrida
+
+<span class="c"># bateria de medições + gráficos do relatório</span>
+./scripts/benchmark.sh &amp;&amp; python3 scripts/plot.py</pre>
+
+    <p class="note">O servidor encerra com <kbd>Ctrl+C</kbd> ou <code>SIGTERM</code>: o sinal interrompe o
+      <code>sem_wait</code> da thread despachante, que fecha a fila, espera os workers drenarem o que sobrou,
+      salva o banco e remove a memória compartilhada, os semáforos e os FIFOs. Se algum processo for morto com
+      <code>-9</code> e deixar objetos de kernel para trás, <code>make limpar-ipc</code> resolve.</p>
+  </section>
+
+  <section>
+    <div class="prose">
+      <p class="eyebrow">ESTADO</p>
+      <h2>O que está pronto e o que falta</h2>
+    </div>
+    <div class="split">
+      <div class="card">
+        <h3>Pronto</h3>
+        <ul>
+          <li>Dois binários compilando sem warning</li>
+          <li>Ring em shm + 3 semáforos nomeados</li>
+          <li>FIFO de respostas por cliente</li>
+          <li>Pool de N threads + fila bloqueante</li>
+          <li>Lock de leitores-escritores</li>
+          <li>As quatro operações e a persistência</li>
+          <li>Três testes passando</li>
+          <li>Benchmark, CSV e gráficos</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Falta</h3>
+        <ul>
+          <li>Relatório em PDF (ABNT)</li>
+          <li>Ensaio da apresentação</li>
+          <li>Deixar o repositório público</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Limites conhecidos</h3>
+        <ul>
+          <li>Busca linear na tabela: O(n) por requisição, suficiente para a escala do trabalho</li>
+          <li>Requisições de um mesmo cliente são atendidas em paralelo, então não há ordem garantida entre elas</li>
+          <li>A tabela vive em memória; o arquivo é gravado só no encerramento</li>
+        </ul>
+      </div>
     </div>
   </section>
+
 
 </div>

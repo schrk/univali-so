@@ -133,9 +133,9 @@ text{font-family:"IBM Plex Sans",Arial,sans-serif}
 
           <!-- B2 FIFO -->
           <rect class="bx" x="312" y="490" width="206" height="68" rx="4"></rect>
-          <text class="m" x="415" y="514" text-anchor="middle">/tmp/minidb_resp</text>
+          <text class="m" x="415" y="514" text-anchor="middle">/tmp/minidb_resp.&lt;pid&gt;</text>
           <text class="t2" x="415" y="531" text-anchor="middle">FIFO nomeado (mkfifo)</text>
-          <text class="m2" x="415" y="547" text-anchor="middle">canal 2 — respostas</text>
+          <text class="m2" x="415" y="547" text-anchor="middle">canal 2 — um por cliente</text>
 
           <!-- A3 receptora -->
           <rect class="bx" x="22" y="490" width="206" height="68" rx="4"></rect>

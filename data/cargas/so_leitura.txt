@@ -1,0 +1,17 @@
+# Só leitura: todos os SELECT podem entrar juntos na tabela.
+# É o cenário em que o lock de leitores-escritores mais se distancia de um mutex único.
+SELECT nome WHERE id=1
+SELECT nome WHERE id=2
+SELECT nome WHERE id=3
+SELECT nome WHERE id=5
+SELECT nome WHERE id=8
+SELECT nome WHERE id=1
+SELECT nome WHERE id=2
+SELECT nome WHERE id=3
+SELECT nome WHERE id=5
+SELECT nome WHERE id=8
+SELECT nome WHERE id=1
+SELECT nome WHERE id=2
+SELECT nome WHERE id=3
+SELECT nome WHERE id=5
+SELECT nome WHERE id=8

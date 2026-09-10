@@ -2,9 +2,12 @@ bin/
 obj/
 *.o
 *.d
+
+# gerados em tempo de execução
 data/logs/
 data/banco.txt
-resultados/*.csv
-resultados/graficos/
+
+# LaTeX do relatório
 docs/relatorio/*.aux
 docs/relatorio/*.log
+docs/relatorio/*.out
