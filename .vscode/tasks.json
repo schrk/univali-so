@@ -1,0 +1,72 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "compilar",
+      "type": "shell",
+      "command": "make",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$gcc"],
+      "detail": "gera bin/servidor e bin/cliente (otimizado)"
+    },
+    {
+      "label": "compilar (debug)",
+      "type": "shell",
+      "command": "make debug",
+      "group": "build",
+      "problemMatcher": ["$gcc"],
+      "detail": "recompila tudo com -O0 -g para o depurador"
+    },
+    {
+      "label": "compilar testes",
+      "type": "shell",
+      "command": "make testes",
+      "group": "build",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "rodar demo",
+      "type": "shell",
+      "command": "./scripts/demo.sh",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": [],
+      "detail": "sobe o servidor, roda um cliente e mostra o log"
+    },
+    {
+      "label": "rodar testes",
+      "type": "shell",
+      "command": "make testes && ./bin/test_ipc && ./bin/test_rw_lock && ./bin/test_corrida",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "vários clientes",
+      "type": "shell",
+      "command": "./scripts/multi_cliente.sh 4 500",
+      "problemMatcher": [],
+      "detail": "4 processos cliente disputando o mesmo ring"
+    },
+    {
+      "label": "benchmark + gráficos",
+      "type": "shell",
+      "command": "./scripts/benchmark.sh && python3 scripts/plot.py",
+      "problemMatcher": [],
+      "detail": "bateria de medições do relatório (demora alguns minutos)"
+    },
+    {
+      "label": "limpar IPC órfão",
+      "type": "shell",
+      "command": "make limpar-ipc",
+      "problemMatcher": [],
+      "detail": "remove shm/semáforos/FIFOs deixados por um processo morto com -9"
+    },
+    {
+      "label": "aguardar servidor",
+      "type": "shell",
+      "command": "for i in $(seq 1 50); do [ -e /dev/shm/minidb_requests ] && exit 0; sleep 0.1; done; echo 'servidor não subiu — inicie a configuração \"Servidor\" primeiro'; exit 1",
+      "presentation": { "reveal": "silent", "close": true },
+      "problemMatcher": [],
+      "detail": "usado antes de depurar o cliente"
+    }
+  ]
+}

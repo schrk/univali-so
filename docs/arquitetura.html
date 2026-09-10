@@ -749,7 +749,8 @@
       <p class="eyebrow">EXECUÇÃO</p>
       <h2>Como rodar</h2>
       <p>Só precisa de <code>g++</code> com C++17 e um Linux com POSIX shm e semáforos nomeados.
-        Nenhuma dependência externa.</p>
+        Nenhuma dependência externa. No Windows, use o WSL; no macOS não compila sem alterações,
+        porque <code>sem_init</code> lá devolve <code>ENOSYS</code>.</p>
     </div>
 
 <pre><span class="c"># compila os dois binários</span>
@@ -769,7 +770,15 @@ make demo
 make testes &amp;&amp; ./bin/test_ipc &amp;&amp; ./bin/test_rw_lock &amp;&amp; ./bin/test_corrida
 
 <span class="c"># bateria de medições + gráficos do relatório</span>
-./scripts/benchmark.sh &amp;&amp; python3 scripts/plot.py</pre>
+./scripts/benchmark.sh &amp;&amp; python3 scripts/plot.py
+
+<span class="c"># compila com símbolos de depuração (F5 no VS Code faz isso sozinho)</span>
+make debug</pre>
+
+    <p class="note">O repositório já traz <code>.vscode/</code> configurado: <kbd>Ctrl+Shift+B</kbd>
+      compila, <strong>Tasks: Run Task</strong> lista demo, testes, múltiplos clientes e benchmark, e
+      <kbd>F5</kbd> sobe o servidor sob o gdb — com o painel <em>Call Stack</em> mostrando as threads
+      do pool uma a uma, que é a forma mais direta de demonstrar o paralelismo na apresentação.</p>
 
     <p class="note">O servidor encerra com <kbd>Ctrl+C</kbd> ou <code>SIGTERM</code>: o sinal interrompe o
       <code>sem_wait</code> da thread despachante, que fecha a fila, espera os workers drenarem o que sobrou,

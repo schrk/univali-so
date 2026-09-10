@@ -1,0 +1,54 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Servidor",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/servidor",
+      "args": ["--threads", "4"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "preLaunchTask": "compilar (debug)",
+      "setupCommands": [
+        { "description": "formatação legível no gdb", "text": "-enable-pretty-printing", "ignoreFailures": true },
+        { "description": "não parar a cada thread criada", "text": "set print thread-events off", "ignoreFailures": true }
+      ]
+    },
+    {
+      "name": "Cliente",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/cliente",
+      "args": ["--carga", "data/cargas/basica.txt"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "preLaunchTask": "aguardar servidor",
+      "setupCommands": [
+        { "description": "formatação legível no gdb", "text": "-enable-pretty-printing", "ignoreFailures": true }
+      ]
+    },
+    {
+      "name": "Teste: rw_lock",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/test_rw_lock",
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "preLaunchTask": "compilar testes"
+    },
+    {
+      "name": "Teste: condição de corrida",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/test_corrida",
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "preLaunchTask": "compilar testes"
+    }
+  ]
+}

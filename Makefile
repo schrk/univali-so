@@ -3,7 +3,12 @@
 #   bin/cliente   processo que envia requisições por IPC
 
 CXX      := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -O2 -pthread -Iinclude
+OTIMIZA  := -O2
+# make DEBUG=1 (ou o alvo "debug") troca a otimização por símbolos de depuração.
+ifdef DEBUG
+OTIMIZA  := -O0 -g
+endif
+CXXFLAGS := -std=c++17 -Wall -Wextra $(OTIMIZA) -pthread -Iinclude
 LDFLAGS  := -pthread -lrt          # -lrt: shm_open/sem_open; -pthread: threads e mutex
 
 SRC_COMMON := $(wildcard src/common/*.cpp)
@@ -17,7 +22,7 @@ OBJ_CLI  := $(patsubst src/%.cpp, obj/%.o, $(SRC_CLI))
 
 TESTES := bin/test_ipc bin/test_rw_lock bin/test_corrida
 
-.PHONY: all testes demo benchmark limpar limpar-ipc ajuda
+.PHONY: all debug testes demo benchmark limpar limpar-ipc ajuda
 
 all: bin/servidor bin/cliente
 
@@ -28,6 +33,13 @@ bin/servidor: $(OBJ_BASE) $(OBJ_SRV) obj/servidor/main.o
 bin/cliente: $(OBJ_BASE) $(OBJ_CLI) obj/cliente/main.o
 	@mkdir -p bin
 	$(CXX) $^ -o $@ $(LDFLAGS)
+
+# Recompila do zero: misturar objetos -O2 com objetos -g dá um binário que o
+# depurador mostra fora de sincronia com o código.
+debug:
+	@$(MAKE) --no-print-directory limpar
+	@$(MAKE) --no-print-directory DEBUG=1 all testes
+	@echo "compilado com -O0 -g"
 
 testes: $(TESTES)
 
@@ -66,6 +78,7 @@ limpar:
 
 ajuda:
 	@echo "make            compila bin/servidor e bin/cliente"
+	@echo "make debug      recompila tudo com -O0 -g para o depurador"
 	@echo "make testes     compila os três testes"
 	@echo "make demo       sobe o servidor, roda um cliente e mostra o log"
 	@echo "make benchmark  varia o nº de threads e gera resultados/metricas.csv"

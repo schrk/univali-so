@@ -54,6 +54,70 @@ kernel para trás, `make limpar-ipc` resolve.
 **Opções do cliente:** `--carga arquivo`, `--gerar N` (carga sintética),
 `--leitura P` (% de SELECT, padrão 70), `--faixa N`, `--semente N`, `--silencioso`.
 
+## Rodando no VS Code
+
+> **Só funciona em Linux.** O código usa `sem_init` (semáforos anônimos), `SYS_gettid` e `-lrt`.
+> No **Windows** use o WSL (`wsl --install`, depois abra a pasta pela extensão *WSL* do VS Code — o
+> canto inferior esquerdo precisa mostrar `WSL: Ubuntu`). No **macOS** não compila sem alterações:
+> `sem_init` existe no cabeçalho mas é uma função não implementada, que devolve `ENOSYS`.
+
+Dependências, uma vez só:
+
+```bash
+sudo apt install build-essential gdb python3-matplotlib
+```
+
+No VS Code, instale a extensão **C/C++ Extension Pack** (a Microsoft já a sugere ao abrir o projeto,
+porque ela está em `.vscode/extensions.json`) e abra a pasta do repositório.
+
+### Compilar e executar
+
+`Ctrl+Shift+B` compila. `Ctrl+Shift+P` → **Tasks: Run Task** dá acesso ao resto:
+
+| Tarefa | O que faz |
+| --- | --- |
+| `compilar` | `make` — os dois binários (atalho `Ctrl+Shift+B`) |
+| `compilar (debug)` | `make debug` — recompila tudo com `-O0 -g` |
+| `rodar demo` | servidor + cliente + log, ponta a ponta |
+| `rodar testes` | os três testes em sequência |
+| `vários clientes` | 4 processos cliente disputando o mesmo ring |
+| `benchmark + gráficos` | a bateria de medições do relatório |
+| `limpar IPC órfão` | remove shm/semáforos/FIFOs de um processo morto com `-9` |
+
+Para ver os dois processos separados, o mais direto é usar dois terminais integrados
+(`Ctrl+Shift+5` divide o painel):
+
+```bash
+# terminal 1
+./bin/servidor --threads 4
+# terminal 2
+./bin/cliente --carga data/cargas/basica.txt
+```
+
+### Depurar
+
+`F5` com a configuração **Servidor** selecionada compila em modo debug e sobe o servidor sob o gdb.
+Em seguida troque para **Cliente** e aperte `F5` de novo — essa configuração espera a memória
+compartilhada existir antes de iniciar, então a ordem importa. As duas sessões ficam lado a lado no
+painel *Call Stack*.
+
+Pontos de parada úteis para a apresentação:
+
+| Arquivo | Linha | Mostra |
+| --- | --- | --- |
+| `src/ipc/shm_ring.cpp` | dentro de `push` / `pop` | os semáforos abrindo e fechando o ring |
+| `src/servidor/rw_lock.cpp` | `lock_leitura` / `lock_escrita` | o contador de leitores e a catraca |
+| `src/servidor/pool_threads.cpp` | dentro de `laco` | vários workers parando no mesmo ponto |
+
+Com o servidor parado em um ponto de parada, o painel **Call Stack** lista as threads (`W0`…`W3`,
+a despachante e a `main`) — é a forma mais visual de mostrar o pool funcionando. No console de
+depuração, `-exec info threads` dá a mesma informação em texto.
+
+### Se o IntelliSense reclamar dos `#include`
+
+`.vscode/c_cpp_properties.json` já aponta `includePath` para `include/`. Se ainda assim aparecerem
+sublinhados vermelhos, rode `Ctrl+Shift+P` → **C/C++: Reset IntelliSense Database**.
+
 ## Fluxo do sistema
 
 ![Fluxo do sistema](docs/fluxo.png)
@@ -119,6 +183,7 @@ minidb-ipc/
 ├── Makefile                       # gera bin/servidor e bin/cliente (-pthread -lrt)
 ├── README.md
 ├── .gitignore
+├── .vscode/                       # tarefas, depuração e IntelliSense prontos
 │
 ├── include/
 │   ├── common/                    # CONTRATO — travado antes de qualquer código
@@ -215,16 +280,14 @@ struct Resposta {     // servidor → cliente, via FIFO nomeado
 
 O trio fecha junto `common/protocolo.hpp` e `common/config.hpp` antes de qualquer implementação.
 
-## Sequência de implementação
+## O que falta
 
-1. `common/` + `Makefile`: dois binários que compilam e imprimem versão.
-2. `ipc/`: cliente envia uma requisição, servidor imprime — sem banco ainda.
-3. `banco` + `executor` com uma única thread: as quatro operações corretas.
-4. `fila_tarefas` + `pool_threads`: N workers, ainda com mutex simples.
-5. `rw_lock`: leitura compartilhada e escrita exclusiva no lugar do mutex único.
-6. FIFO de respostas, log e persistência fechando o ciclo até o cliente.
-7. `tests/` + `benchmark.sh`: medições, CSVs e gráficos do relatório.
-8. Relatório em PDF (ABNT) e ensaio da apresentação com o repositório público.
+A implementação está completa. Do enunciado, restam:
+
+1. Relatório em PDF no formato de artigo científico/ABNT — as figuras (`docs/*.png`), as tabelas de
+   resultados e os trechos de código já estão prontos para entrar nele.
+2. Ensaio da apresentação: cada frente explica a sua camada (ver a divisão acima).
+3. Deixar o repositório público **antes** da entrega e mantê-lo assim durante a correção.
 
 ## Limites conhecidos
 
