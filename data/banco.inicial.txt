@@ -1,6 +1,0 @@
-# banco simulado — id;nome
-1;Joao
-2;Maria
-3;Ana
-5;Pedro
-8;Lucas

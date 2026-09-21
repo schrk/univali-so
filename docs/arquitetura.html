@@ -1,6 +1,6 @@
-<title>Arquitetura do minidb-ipc</title>
+<title>Banco com IPC e Threads</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap">
 <style>
   :root {
     --ground:#eef1f5; --surface:#ffffff; --surface-2:#f7f9fb;
@@ -8,7 +8,6 @@
     --line:#d4dce4; --line-strong:#b4c1cd;
     --flow:#0f766e; --flow-bg:#e6f1f0;
     --crit:#a8531a; --crit-bg:#fbf0e6;
-    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
     --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
     --serif:"IBM Plex Serif",Georgia,"Times New Roman",serif;
     --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
@@ -20,7 +19,6 @@
       --line:#2a3440; --line-strong:#3d4a57;
       --flow:#41bcac; --flow-bg:#122a2c;
       --crit:#e2974c; --crit-bg:#2b2118;
-      --s1:#3987e5; --s2:#d95926; --s3:#199e70;
     }
   }
   :root[data-theme="dark"] {
@@ -29,800 +27,300 @@
     --line:#2a3440; --line-strong:#3d4a57;
     --flow:#41bcac; --flow-bg:#122a2c;
     --crit:#e2974c; --crit-bg:#2b2118;
-    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   }
 
   body {
     background: var(--ground); color: var(--ink);
     font-family: var(--serif); font-size: 15.5px; line-height: 1.65;
     padding-block: 40px 72px; padding-left: 20px; padding-right: 20px;
-    -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
-  .prose { max-width: 68ch; }
+  .wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 42px; }
+  .prose { max-width: 66ch; }
   p { margin: 0 0 12px; }
   p:last-child { margin-bottom: 0; }
-  a { color: var(--flow); }
-  strong { font-weight: 500; color: var(--ink); }
 
-  h1, h2, h3, .eyebrow, .lead, th, .tree, code, .badge, .tag { font-family: var(--sans); }
-  h1 { font-size: 33px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
-  h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 6px; text-wrap: balance; }
-  h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
-  .eyebrow {
-    font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em;
-    color: var(--flow); margin: 0 0 10px;
-  }
-  .lead { font-size: 16px; color: var(--ink-2); font-family: var(--serif); }
+  h1, h2, .eyebrow, th, .tag { font-family: var(--sans); }
+  h1 { font-size: 31px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
+  h2 { font-size: 19px; font-weight: 600; margin: 0 0 6px; text-wrap: balance; }
+  .eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; color: var(--flow); margin: 0 0 10px; }
+  .lead { font-size: 16px; color: var(--ink-2); }
 
-  header { border-bottom: 1px solid var(--line); padding-bottom: 26px; }
-  .meta {
-    display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 18px;
-    font-family: var(--mono); font-size: 11px; color: var(--ink-2);
-  }
-  .tag { font-family: var(--mono); border: 1px solid var(--line-strong); border-radius: 3px; padding: 2px 7px; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 24px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 16px; }
+  .tag { font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+         border: 1px solid var(--line-strong); border-radius: 3px; padding: 2px 7px; }
 
-  section { display: flex; flex-direction: column; gap: 16px; }
+  section { display: flex; flex-direction: column; gap: 14px; }
 
   figure { margin: 0; display: flex; flex-direction: column; gap: 12px; }
-  .canvas {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: 5px; padding: 14px; overflow-x: auto; color: var(--ink);
-  }
-  .canvas svg { display: block; width: 100%; min-width: 720px; height: auto; }
-  figcaption { font-size: 13.5px; color: var(--ink-2); max-width: 74ch; }
+  .canvas { background: var(--surface); border: 1px solid var(--line);
+            border-radius: 5px; padding: 14px; overflow-x: auto; color: var(--ink); }
+  .canvas svg { display: block; width: 100%; min-width: 560px; height: auto; }
+  figcaption { font-size: 13.5px; color: var(--ink-2); max-width: 70ch; }
 
-  .lane-frame { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; }
-  .bx { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+  .bx { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; }
   .bx-in { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; }
-  .bx-crit { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 1.3; }
-  .slot-full { fill: var(--flow-bg); stroke: var(--flow); stroke-width: 1; }
-  .slot-free { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 2 2; }
-  .lane-hd { font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.13em; fill: var(--ink-2); }
-  .t { font-family: var(--sans); font-size: 11px; fill: var(--ink); }
-  .t2 { font-family: var(--sans); font-size: 10px; fill: var(--ink-2); }
+  .bx-crit { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 1.4; }
+  .slot { fill: var(--flow-bg); stroke: var(--flow); stroke-width: 1; }
+  .slot-vazio { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 2 2; }
+  .t { font-family: var(--sans); font-size: 12px; fill: var(--ink); }
+  .t2 { font-family: var(--sans); font-size: 10.5px; fill: var(--ink-2); }
   .m { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
   .m2 { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-3); }
   .cap { font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.12em; fill: var(--ink-3); }
   .cap-crit { font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.12em; fill: var(--crit); }
-  .ar { stroke: var(--flow); stroke-width: 1.5; fill: none; }
-  .ar-w { stroke: var(--crit); stroke-width: 1.5; fill: none; }
-  .ar-r { stroke: var(--flow); stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
-  .alab { font-family: var(--mono); font-size: 9.5px; fill: var(--flow); }
-  .alab-w { font-family: var(--mono); font-size: 9.5px; fill: var(--crit); }
-  .num { fill: var(--surface); stroke: var(--flow); stroke-width: 1.2; }
-  .num-w { fill: var(--surface); stroke: var(--crit); stroke-width: 1.2; }
-  .numt { font-family: var(--sans); font-size: 9.5px; font-weight: 600; fill: var(--flow); }
-  .numt-w { font-family: var(--sans); font-size: 9.5px; font-weight: 600; fill: var(--crit); }
-  .axis { stroke: var(--line-strong); stroke-width: 1; }
-  .guide { stroke: var(--crit); stroke-width: 1; stroke-dasharray: 3 3; }
-  .bar-r { fill: var(--flow-bg); stroke: var(--flow); stroke-width: 1; }
-  .bar-w { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 1.2; }
-  .bar-wait { fill: none; stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 3 3; }
-
-  .s1 { stroke: var(--s1); } .s2 { stroke: var(--s2); } .s3 { stroke: var(--s3); }
-  .f1 { fill: var(--s1); } .f2 { fill: var(--s2); } .f3 { fill: var(--s3); }
-  .serie { fill: none; stroke-width: 2; }
-  .pt { stroke: var(--surface); stroke-width: 1.5; }
-  .grade { stroke: var(--line); stroke-width: 1; }
-  .eixo { stroke: var(--line-strong); stroke-width: 1; }
-  .marca-nucleos { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 4 4; }
-  .val { font-family: var(--mono); font-size: 10px; }
-
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--sans); font-size: 12px; color: var(--ink-2); }
-  .legend span { display: inline-flex; align-items: center; gap: 8px; }
-  .swatch { width: 26px; height: 0; border-top-width: 2px; border-top-style: solid; }
-  .sw-r { border-top-color: var(--flow); border-top-style: dashed; }
-  .sw-w { border-top-color: var(--crit); }
-
-  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 28px; }
-  ol.steps li { counter-increment: s; position: relative; padding-left: 30px; font-size: 14px; color: var(--ink-2); }
-  ol.steps li::before {
-    content: counter(s); position: absolute; left: 0; top: 1px;
-    width: 19px; height: 19px; border-radius: 50%; border: 1px solid var(--flow);
-    color: var(--flow); font-family: var(--sans); font-size: 10.5px; font-weight: 600;
-    display: grid; place-items: center;
-  }
-  ol.steps li code { color: var(--ink); }
+  .ar { stroke: var(--flow); stroke-width: 1.6; fill: none; }
+  .alab { font-family: var(--mono); font-size: 10px; fill: var(--flow); }
+  .zona { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 3 3; fill: none; }
 
   .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
   table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
-  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; color: var(--ink-3); background: var(--surface-2); white-space: nowrap; }
   tr:last-child td { border-bottom: 0; }
-  td:first-child { font-family: var(--sans); font-size: 13px; font-weight: 500; }
   td.p { font-family: var(--mono); font-size: 11.5px; color: var(--flow); white-space: nowrap; }
 
-  pre {
-    margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 5px;
-    padding: 16px 18px; overflow-x: auto;
-    font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--ink);
-  }
+  pre { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 5px;
+        padding: 15px 17px; overflow-x: auto;
+        font-family: var(--mono); font-size: 12px; line-height: 1.65; color: var(--ink); }
   pre .c { color: var(--ink-3); }
   pre .k { color: var(--flow); }
-  kbd { font-family: var(--mono); font-size: 0.85em; background: var(--surface-2);
-        border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 3px; padding: 1px 5px; }
-  code { font-family: var(--mono); font-size: 0.9em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px; }
+  code { font-family: var(--mono); font-size: 0.9em; background: var(--surface-2);
+         border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px; }
 
-  .split { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 14px 16px; }
-  .card h3 { color: var(--flow); letter-spacing: 0.06em; text-transform: uppercase; font-size: 10.5px; }
-  .card ul { margin: 0; padding-left: 17px; font-size: 13px; color: var(--ink-2); }
-  .card li { margin-bottom: 3px; }
-  .card li code { background: none; border: 0; padding: 0; color: var(--ink); }
+  .note { border-left: 2px solid var(--crit); padding: 2px 0 2px 15px; font-size: 14px;
+          color: var(--ink-2); max-width: 68ch; }
 
-  .note { border-left: 2px solid var(--crit); padding: 2px 0 2px 16px; font-size: 14px; color: var(--ink-2); max-width: 70ch; }
+  ol { margin: 0; padding-left: 20px; font-size: 14.5px; color: var(--ink-2); max-width: 68ch; }
+  ol li { margin-bottom: 7px; }
+  ol li code { color: var(--ink); }
 
-  @media (max-width: 720px) {
-    ol.steps, .split { grid-template-columns: 1fr; }
-    h1 { font-size: 27px; }
-  }
+  @media (max-width: 640px) { h1 { font-size: 26px; } }
 </style>
 
 <div class="wrap">
 
   <header>
     <p class="eyebrow">SISTEMAS OPERACIONAIS &middot; AVALIAÇÃO M1 &middot; IPC, THREADS E PARALELISMO</p>
-    <h1>minidb-ipc — desenho do sistema</h1>
-    <p class="lead">Gerenciador de requisições a um banco de dados simulado: um processo cliente produz requisições
-      em memória compartilhada POSIX, um processo servidor as consome com um pool de threads e aplica cada operação
-      sobre uma tabela protegida por um lock de leitores-escritores construído com <code>pthread_mutex_t</code> + <code>sem_t</code>.
-      As respostas voltam por um segundo canal IPC (FIFO nomeado) e são registradas em log.</p>
+    <h1>Banco de dados com IPC e threads</h1>
+    <p class="lead">Dois programas separados: o <strong>cliente</strong> envia requisições por
+      memória compartilhada e o <strong>servidor</strong> as executa com quatro threads sobre uma
+      tabela protegida por mutex. O resultado de cada requisição vai para um arquivo de log.</p>
     <div class="meta">
-      <span class="tag">C++17</span>
+      <span class="tag">C</span>
       <span class="tag">pthreads</span>
-      <span class="tag">POSIX shm</span>
-      <span class="tag">sem_t nomeado</span>
-      <span class="tag">FIFO (mkfifo)</span>
-      <span class="tag">2 binários</span>
-      <span class="tag">implementado</span>
+      <span class="tag">memória compartilhada</span>
+      <span class="tag">semáforos</span>
+      <span class="tag">mutex</span>
+      <span class="tag">5 arquivos</span>
     </div>
   </header>
 
   <section>
     <div class="prose">
-      <p class="eyebrow">FIGURA 1</p>
-      <h2>Fluxo do sistema</h2>
-      <p>Requisição percorre a metade de cima da esquerda para a direita; a resposta volta pela metade de baixo.
-        A coluna do meio é a fronteira entre os dois processos: tudo que a atravessa é objeto do kernel, nunca
-        variável global nem chamada de função.</p>
+      <p class="eyebrow">FLUXO</p>
+      <h2>O caminho de uma requisição</h2>
+      <p>A requisição desce a coluna de cima para baixo. A memória compartilhada é a única ligação
+        entre os dois processos — nenhum deles chama função do outro.</p>
     </div>
 
     <figure>
       <div class="canvas">
-        <svg viewBox="0 0 1000 592" role="img" aria-label="Fluxo em três faixas: processo cliente à esquerda, canais IPC POSIX no centro (ring buffer em memória compartilhada com semáforos nomeados e FIFO de respostas) e processo servidor à direita, com thread despachante, fila de tarefas, pool de threads e a seção crítica protegendo a tabela de registros.">
+        <svg viewBox="0 0 700 660" role="img" aria-label="Fluxo vertical: o cliente monta a requisição, escreve na memória compartilhada protegida por três semáforos, o servidor com quatro threads retira a requisição, executa na tabela de dados dentro da seção crítica protegida por mutex, e grava o resultado no log e no banco.txt.">
           <defs>
-            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="var(--flow)"></path>
             </marker>
-            <marker id="ahw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--crit)"></path>
-            </marker>
           </defs>
 
-          <!-- lane headers -->
-          <text class="lane-hd" x="125" y="24" text-anchor="middle">PROCESSO CLIENTE</text>
-          <text class="m2" x="125" y="36" text-anchor="middle">bin/cliente</text>
-          <text class="lane-hd" x="415" y="24" text-anchor="middle">CANAIS IPC (POSIX)</text>
-          <text class="m2" x="415" y="36" text-anchor="middle">fronteira entre processos</text>
-          <text class="lane-hd" x="790" y="24" text-anchor="middle">PROCESSO SERVIDOR</text>
-          <text class="m2" x="790" y="36" text-anchor="middle">bin/servidor</text>
+          <!-- zonas -->
+          <rect class="zona" x="14" y="26" width="672" height="98" rx="5"></rect>
+          <text class="cap" x="24" y="44">PROCESSO 1</text>
+          <rect class="zona" x="14" y="160" width="672" height="140" rx="5"></rect>
+          <text class="cap" x="24" y="178">SISTEMA OPERACIONAL</text>
+          <rect class="zona" x="14" y="336" width="672" height="308" rx="5"></rect>
+          <text class="cap" x="24" y="354">PROCESSO 2</text>
 
-          <rect class="lane-frame" x="10" y="44" width="230" height="528" rx="5"></rect>
-          <rect class="lane-frame" x="300" y="44" width="230" height="528" rx="5"></rect>
-          <rect class="lane-frame" x="590" y="44" width="400" height="528" rx="5"></rect>
+          <!-- 1. cliente -->
+          <rect class="bx" x="200" y="52" width="300" height="60" rx="4"></rect>
+          <text class="t" x="350" y="76" text-anchor="middle">Cliente monta a requisição</text>
+          <text class="m2" x="350" y="95" text-anchor="middle">cliente.c</text>
+          <text class="m2" x="686" y="80" text-anchor="end">Requisicao { op, id, nome }</text>
 
-          <!-- A1 parser -->
-          <rect class="bx" x="22" y="70" width="206" height="58" rx="4"></rect>
-          <text class="m" x="125" y="92" text-anchor="middle">cliente/parser.cpp</text>
-          <text class="t2" x="125" y="110" text-anchor="middle">texto SQL simples → Requisicao</text>
+          <line class="ar" x1="350" y1="112" x2="350" y2="184" marker-end="url(#seta)"></line>
+          <text class="alab" x="360" y="153">sem_post(cheias)</text>
 
-          <!-- A2 produtor -->
-          <rect class="bx" x="22" y="160" width="206" height="58" rx="4"></rect>
-          <text class="m" x="125" y="182" text-anchor="middle">ipc/shm_ring.hpp</text>
-          <text class="t2" x="125" y="200" text-anchor="middle">thread produtora: push()</text>
+          <!-- 2. memória compartilhada -->
+          <rect class="bx" x="140" y="186" width="420" height="100" rx="4"></rect>
+          <text class="t" x="350" y="208" text-anchor="middle">Memória compartilhada</text>
+          <text class="m2" x="350" y="224" text-anchor="middle">/banco_memoria — shm_open + mmap</text>
+          <rect class="slot" x="168" y="234" width="42" height="22" rx="2"></rect>
+          <rect class="slot" x="214" y="234" width="42" height="22" rx="2"></rect>
+          <rect class="slot-vazio" x="260" y="234" width="42" height="22" rx="2"></rect>
+          <rect class="slot-vazio" x="306" y="234" width="42" height="22" rx="2"></rect>
+          <rect class="slot-vazio" x="352" y="234" width="42" height="22" rx="2"></rect>
+          <rect class="slot-vazio" x="398" y="234" width="42" height="22" rx="2"></rect>
+          <text class="m2" x="450" y="249">buffer circular</text>
+          <text class="m2" x="168" y="274">semáforos: vazias · cheias · mutex</text>
+          <text class="m2" x="686" y="228" text-anchor="end">cliente escreve</text>
+          <text class="m2" x="686" y="244" text-anchor="end">servidor lê</text>
 
-          <!-- A annotation -->
-          <rect class="bx-in" x="22" y="300" width="206" height="86" rx="4" stroke-dasharray="4 3"></rect>
-          <text class="cap" x="125" y="320" text-anchor="middle">O CLIENTE TEM 2 THREADS</text>
-          <text class="m2" x="36" y="340">produtora  → ring</text>
-          <text class="m2" x="36" y="356">receptora  ← FIFO</text>
-          <text class="t2" x="125" y="376" text-anchor="middle">vários clientes no mesmo ring</text>
+          <line class="ar" x1="350" y1="286" x2="350" y2="360" marker-end="url(#seta)"></line>
+          <text class="alab" x="360" y="328">sem_wait(cheias)</text>
 
-          <!-- B1 shm -->
-          <rect class="bx" x="312" y="70" width="206" height="190" rx="4"></rect>
-          <text class="m" x="415" y="90" text-anchor="middle">/minidb_requests</text>
-          <text class="m2" x="415" y="105" text-anchor="middle">shm_open + ftruncate + mmap</text>
-          <rect class="slot-full" x="324" y="116" width="29" height="28" rx="2"></rect>
-          <rect class="slot-full" x="356" y="116" width="29" height="28" rx="2"></rect>
-          <rect class="slot-full" x="388" y="116" width="29" height="28" rx="2"></rect>
-          <rect class="slot-free" x="420" y="116" width="29" height="28" rx="2"></rect>
-          <rect class="slot-free" x="452" y="116" width="29" height="28" rx="2"></rect>
-          <rect class="slot-free" x="484" y="116" width="29" height="28" rx="2"></rect>
-          <text class="cap" x="415" y="159" text-anchor="middle">RING BUFFER DE REQUISIÇÕES</text>
-          <rect class="bx-in" x="324" y="168" width="182" height="80" rx="3"></rect>
-          <text class="cap" x="415" y="184" text-anchor="middle">SEMÁFOROS NOMEADOS</text>
-          <text class="m2" x="336" y="202">sem_vazias</text>
-          <text class="m2" x="336" y="217">sem_cheias</text>
-          <text class="m2" x="336" y="232">sem_mutex_ring</text>
-          <text class="m2" x="497" y="202" text-anchor="end">= N</text>
-          <text class="m2" x="497" y="217" text-anchor="end">= 0</text>
-          <text class="m2" x="497" y="232" text-anchor="end">= 1</text>
+          <!-- 3. servidor / threads -->
+          <rect class="bx" x="140" y="362" width="420" height="92" rx="4"></rect>
+          <text class="t" x="350" y="384" text-anchor="middle">Servidor — pool de 4 threads</text>
+          <text class="m2" x="350" y="400" text-anchor="middle">servidor.c — pthread_create</text>
+          <rect class="bx-in" x="160" y="410" width="90" height="30" rx="3"></rect>
+          <text class="m" x="205" y="430" text-anchor="middle">thread 0</text>
+          <rect class="bx-in" x="258" y="410" width="90" height="30" rx="3"></rect>
+          <text class="m" x="303" y="430" text-anchor="middle">thread 1</text>
+          <rect class="bx-in" x="356" y="410" width="90" height="30" rx="3"></rect>
+          <text class="m" x="401" y="430" text-anchor="middle">thread 2</text>
+          <rect class="bx-in" x="454" y="410" width="90" height="30" rx="3"></rect>
+          <text class="m" x="499" y="430" text-anchor="middle">thread 3</text>
+          <text class="m2" x="686" y="430" text-anchor="end">mesma função</text>
 
-          <!-- B annotation -->
-          <rect class="bx-in" x="312" y="300" width="206" height="86" rx="4" stroke-dasharray="4 3"></rect>
-          <text class="cap" x="415" y="320" text-anchor="middle">CICLO DE VIDA</text>
-          <text class="m2" x="326" y="340">servidor cria os canais</text>
-          <text class="m2" x="326" y="356">shm_unlink · sem_unlink</text>
-          <text class="t2" x="415" y="376" text-anchor="middle">removidos no encerramento</text>
+          <line class="ar" x1="350" y1="454" x2="350" y2="500" marker-end="url(#seta)"></line>
+          <text class="alab" x="360" y="480">pthread_mutex_lock</text>
 
-          <!-- C1 despachante -->
-          <rect class="bx" x="602" y="70" width="376" height="58" rx="4"></rect>
-          <text class="m" x="790" y="92" text-anchor="middle">servidor/main.cpp — thread despachante</text>
-          <text class="t2" x="790" y="110" text-anchor="middle">consome slots do ring e nunca espera pelo banco</text>
+          <!-- 4. tabela (seção crítica) -->
+          <rect class="bx-crit" x="140" y="502" width="420" height="72" rx="4"></rect>
+          <text class="cap-crit" x="350" y="521" text-anchor="middle">SEÇÃO CRÍTICA — UMA THREAD POR VEZ</text>
+          <text class="t" x="350" y="541" text-anchor="middle">Tabela de dados</text>
+          <text class="m2" x="350" y="559" text-anchor="middle">Registro tabela[100] — INSERT · SELECT · UPDATE · DELETE</text>
+          <text class="m2" x="686" y="545" text-anchor="end">protegida por mutex</text>
 
-          <!-- C2 fila -->
-          <rect class="bx" x="602" y="160" width="376" height="58" rx="4"></rect>
-          <text class="m" x="790" y="182" text-anchor="middle">servidor/fila_tarefas.cpp</text>
-          <text class="t2" x="790" y="200" text-anchor="middle">fila bloqueante: pthread_mutex_t + pthread_cond_t</text>
+          <line class="ar" x1="350" y1="574" x2="350" y2="600" marker-end="url(#seta)"></line>
 
-          <!-- C3 pool -->
-          <rect class="bx" x="602" y="250" width="376" height="74" rx="4"></rect>
-          <text class="cap" x="790" y="268" text-anchor="middle">POOL DE THREADS — pthread_create × N</text>
-          <rect class="bx-in" x="612" y="278" width="84" height="34" rx="3"></rect>
-          <text class="m" x="654" y="299" text-anchor="middle">W0</text>
-          <rect class="bx-in" x="704" y="278" width="84" height="34" rx="3"></rect>
-          <text class="m" x="746" y="299" text-anchor="middle">W1</text>
-          <rect class="bx-in" x="796" y="278" width="84" height="34" rx="3"></rect>
-          <text class="m" x="838" y="299" text-anchor="middle">W2</text>
-          <rect class="bx-in" x="888" y="278" width="84" height="34" rx="3"></rect>
-          <text class="m" x="930" y="299" text-anchor="middle">W3</text>
-
-          <!-- C4 critical section -->
-          <rect class="bx-crit" x="602" y="356" width="376" height="104" rx="4"></rect>
-          <text class="cap-crit" x="790" y="375" text-anchor="middle">SEÇÃO CRÍTICA</text>
-          <text class="m" x="790" y="393" text-anchor="middle">servidor/rw_lock.cpp — pthread_mutex_t + sem_t</text>
-          <rect class="bx-in" x="614" y="402" width="352" height="46" rx="3"></rect>
-          <text class="m" x="790" y="421" text-anchor="middle">banco: std::vector&lt;Registro&gt;</text>
-          <text class="t2" x="790" y="438" text-anchor="middle">tabela compartilhada por todas as threads</text>
-
-          <!-- C5 respostas + persistência -->
-          <rect class="bx" x="602" y="490" width="376" height="68" rx="4"></rect>
-          <text class="m" x="790" y="510" text-anchor="middle">ipc/fifo_channel.cpp + common/log.cpp</text>
-          <text class="t2" x="790" y="527" text-anchor="middle">grava resposta, persiste tabela e registra o log</text>
-          <text class="m2" x="790" y="543" text-anchor="middle">data/banco.txt · data/logs/servidor.log</text>
-
-          <!-- B2 FIFO -->
-          <rect class="bx" x="312" y="490" width="206" height="68" rx="4"></rect>
-          <text class="m" x="415" y="514" text-anchor="middle">/tmp/minidb_resp.&lt;pid&gt;</text>
-          <text class="t2" x="415" y="531" text-anchor="middle">FIFO nomeado (mkfifo)</text>
-          <text class="m2" x="415" y="547" text-anchor="middle">canal 2 — um por cliente</text>
-
-          <!-- A3 receptora -->
-          <rect class="bx" x="22" y="490" width="206" height="68" rx="4"></rect>
-          <text class="m" x="125" y="514" text-anchor="middle">cliente/main.cpp</text>
-          <text class="t2" x="125" y="531" text-anchor="middle">thread receptora: read() bloqueante</text>
-          <text class="m2" x="125" y="547" text-anchor="middle">confere e imprime a resposta</text>
-
-          <!-- arrows: request path -->
-          <line class="ar" x1="125" y1="128" x2="125" y2="158" marker-end="url(#ah)"></line>
-          <circle class="num" cx="125" cy="143" r="8.5"></circle>
-          <text class="numt" x="125" y="146.5" text-anchor="middle">1</text>
-          <text class="alab" x="140" y="146.5">monta struct</text>
-
-          <line class="ar" x1="228" y1="189" x2="310" y2="189" marker-end="url(#ah)"></line>
-          <text class="alab" x="269" y="177" text-anchor="middle">post(cheias)</text>
-          <circle class="num" cx="269" cy="189" r="8.5"></circle>
-          <text class="numt" x="269" y="192.5" text-anchor="middle">2</text>
-
-          <line class="ar" x1="518" y1="99" x2="600" y2="99" marker-end="url(#ah)"></line>
-          <text class="alab" x="559" y="87" text-anchor="middle">wait(cheias)</text>
-          <circle class="num" cx="559" cy="99" r="8.5"></circle>
-          <text class="numt" x="559" y="102.5" text-anchor="middle">3</text>
-
-          <line class="ar" x1="790" y1="128" x2="790" y2="158" marker-end="url(#ah)"></line>
-          <circle class="num" cx="790" cy="143" r="8.5"></circle>
-          <text class="numt" x="790" y="146.5" text-anchor="middle">4</text>
-          <text class="alab" x="805" y="146.5">enfileira</text>
-
-          <line class="ar" x1="790" y1="218" x2="790" y2="248" marker-end="url(#ah)"></line>
-          <circle class="num" cx="790" cy="233" r="8.5"></circle>
-          <text class="numt" x="790" y="236.5" text-anchor="middle">5</text>
-          <text class="alab" x="805" y="236.5">pop() em paralelo</text>
-
-          <!-- arrows: critical section access -->
-          <line class="ar-r" x1="700" y1="324" x2="700" y2="354" marker-end="url(#ah)"></line>
-          <circle class="num" cx="700" cy="339" r="8.5"></circle>
-          <text class="numt" x="700" y="342.5" text-anchor="middle">6</text>
-          <text class="alab" x="688" y="342.5" text-anchor="end">SELECT</text>
-
-          <line class="ar-w" x1="880" y1="324" x2="880" y2="354" marker-end="url(#ahw)"></line>
-          <circle class="num-w" cx="880" cy="339" r="8.5"></circle>
-          <text class="numt-w" x="880" y="342.5" text-anchor="middle">7</text>
-          <text class="alab-w" x="868" y="342.5" text-anchor="end">INSERT/UPDATE/DELETE</text>
-
-          <!-- arrows: response path -->
-          <line class="ar" x1="790" y1="460" x2="790" y2="488" marker-end="url(#ah)"></line>
-          <circle class="num" cx="790" cy="474" r="8.5"></circle>
-          <text class="numt" x="790" y="477.5" text-anchor="middle">8</text>
-          <text class="alab" x="805" y="477.5">resultado da operação</text>
-
-          <line class="ar" x1="600" y1="524" x2="520" y2="524" marker-end="url(#ah)"></line>
-          <text class="alab" x="558" y="512" text-anchor="middle">write(resp)</text>
-          <circle class="num" cx="560" cy="524" r="8.5"></circle>
-          <text class="numt" x="560" y="527.5" text-anchor="middle">9</text>
-
-          <line class="ar" x1="310" y1="524" x2="230" y2="524" marker-end="url(#ah)"></line>
-          <text class="alab" x="270" y="512" text-anchor="middle">read()</text>
-          <circle class="num" cx="270" cy="524" r="8.5"></circle>
-          <text class="numt" x="270" y="527.5" text-anchor="middle">10</text>
+          <!-- 5. log -->
+          <rect class="bx" x="200" y="602" width="300" height="34" rx="4"></rect>
+          <text class="m" x="350" y="624" text-anchor="middle">log.txt · banco.txt</text>
+          <text class="m2" x="686" y="624" text-anchor="end">resultado de cada requisição</text>
         </svg>
       </div>
-      <div class="legend">
-        <span><i class="swatch sw-r"></i> tracejado = acesso de leitura, vários leitores ao mesmo tempo</span>
-        <span><i class="swatch sw-w"></i> contínuo = acesso de escrita, exclusivo</span>
-      </div>
-      <figcaption>Duas travessias de fronteira por requisição, com mecanismos IPC diferentes em cada sentido:
-        memória compartilhada + semáforos nomeados na ida (produtor-consumidor entre processos) e FIFO nomeado
-        na volta (o cliente dorme em <code>read()</code>, sem polling).</figcaption>
+      <figcaption>Os três semáforos coordenam o cliente e o servidor: <code>vazias</code> segura o
+        cliente quando o buffer enche, <code>cheias</code> segura as threads quando ele esvazia e
+        <code>mutex</code> garante que só um dos dois mexa nos índices por vez.</figcaption>
     </figure>
-
-    <ol class="steps">
-      <li>O cliente lê a carga (arquivo ou gerador) e o <code>parser</code> converte <code>SELECT nome WHERE id=5</code> em uma <code>Requisicao</code> de tamanho fixo.</li>
-      <li>A thread produtora faz <code>sem_wait(vazias)</code>, entra no <code>sem_mutex_ring</code>, copia a struct no slot e faz <code>sem_post(cheias)</code>.</li>
-      <li>A thread despachante do servidor faz <code>sem_wait(cheias)</code>, retira o slot e devolve espaço com <code>sem_post(vazias)</code>.</li>
-      <li>A requisição vai para a fila interna do servidor; a thread despachante volta imediatamente ao ring.</li>
-      <li>Os <code>N</code> workers do pool acordam na condvar e retiram tarefas da fila em paralelo.</li>
-      <li><code>SELECT</code> entra como leitor: vários workers leem a tabela simultaneamente.</li>
-      <li><code>INSERT</code>, <code>UPDATE</code> e <code>DELETE</code> entram como escritores: acesso exclusivo à tabela.</li>
-      <li>O worker monta a <code>Resposta</code> com status, dados e tempo de espera no lock.</li>
-      <li>A resposta é escrita no FIFO (uma escrita por vez, protegida por mutex) e replicada no log.</li>
-      <li>A thread receptora do cliente lê a resposta, confere contra a requisição e imprime.</li>
-    </ol>
-  </section>
-
-  <section>
-    <div class="prose">
-      <p class="eyebrow">FIGURA 2</p>
-      <h2>O que o lock de leitores-escritores compra</h2>
-      <p>Este é o ponto do trabalho que precisa ser medido e defendido na apresentação: um mutex único serializaria
-        tudo; o lock de leitores-escritores deixa os <code>SELECT</code> correrem juntos e só serializa quando aparece
-        uma escrita.</p>
-    </div>
-
-    <figure>
-      <div class="canvas">
-        <svg viewBox="0 0 1000 250" role="img" aria-label="Linha de tempo com quatro threads: três SELECT sobrepostos executando em paralelo, um UPDATE que espera os leitores saírem e obtém acesso exclusivo, e novos SELECT que só começam depois que o escritor libera o lock.">
-          <text class="m" x="106" y="52" text-anchor="end">W0</text>
-          <text class="m" x="106" y="90" text-anchor="end">W1</text>
-          <text class="m" x="106" y="128" text-anchor="end">W2</text>
-          <text class="m" x="106" y="166" text-anchor="end">W3</text>
-
-          <rect class="bar-r" x="120" y="32" width="315" height="26" rx="3"></rect>
-          <text class="t" x="132" y="49">SELECT id=5</text>
-          <rect class="bar-r" x="624" y="32" width="147" height="26" rx="3"></rect>
-          <text class="t" x="636" y="49">SELECT id=7</text>
-
-          <rect class="bar-r" x="162" y="70" width="294" height="26" rx="3"></rect>
-          <text class="t" x="174" y="87">SELECT id=9</text>
-          <rect class="bar-r" x="624" y="70" width="168" height="26" rx="3"></rect>
-          <text class="t" x="636" y="87">SELECT id=5 (valor novo)</text>
-
-          <rect class="bar-r" x="215" y="108" width="262" height="26" rx="3"></rect>
-          <text class="t" x="227" y="125">SELECT id=2</text>
-
-          <rect class="bar-wait" x="246" y="146" width="231" height="26" rx="3"></rect>
-          <text class="t2" x="258" y="163">espera os leitores saírem</text>
-          <rect class="bar-w" x="477" y="146" width="136" height="26" rx="3"></rect>
-          <text class="t" x="489" y="163">UPDATE id=5</text>
-
-          <line class="guide" x1="477" y1="26" x2="477" y2="196"></line>
-          <line class="guide" x1="613" y1="26" x2="613" y2="196"></line>
-          <text class="cap-crit" x="477" y="20" text-anchor="middle">ÚLTIMO LEITOR SAI</text>
-          <text class="cap-crit" x="613" y="20" text-anchor="middle">ESCRITOR LIBERA</text>
-
-          <line class="axis" x1="120" y1="196" x2="960" y2="196" marker-end="url(#ah2)"></line>
-          <defs>
-            <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill="var(--line-strong)"></path>
-            </marker>
-          </defs>
-          <text class="m2" x="120" y="214">t</text>
-          <text class="t2" x="298" y="228" text-anchor="middle">3 leitores concorrentes</text>
-          <text class="t2" x="545" y="228" text-anchor="middle">escrita exclusiva</text>
-          <text class="t2" x="700" y="228" text-anchor="middle">leitores voltam a rodar juntos</text>
-        </svg>
-      </div>
-      <figcaption>Cada barra é uma thread do pool dentro da seção crítica. As duas guias verticais marcam as
-        transições que o lock precisa garantir: nenhum escritor entra enquanto houver leitor, e nenhum leitor entra
-        enquanto o escritor estiver dentro. É a base da tabela de <em>throughput</em> por número de threads no relatório.</figcaption>
-    </figure>
-  </section>
-
-
-  <section>
-    <div class="prose">
-      <p class="eyebrow">FIGURA 3 &middot; MEDIÇÃO</p>
-      <h2>O que o sistema entrega na prática</h2>
-      <p>Medido em uma máquina de 4 núcleos, 10.000 requisições por execução, mediana de 3 repetições,
-        com um custo de processamento simulado de 200&nbsp;µs por requisição — sem esse custo o trabalho por
-        requisição é tão curto que a medição vira um teste do IPC, não do pool.</p>
-    </div>
-
-    <figure>
-      <div class="canvas">
-        <svg viewBox="0 0 760 370" role="img" aria-label="Throughput por número de threads: com 100% de leitura o sistema escala de 4.505 para 17.968 requisições por segundo entre 1 e 8 threads, estabilizando em 4 núcleos; com 70% de leitura vai de 4.517 a 6.840; só com escrita fica plano em torno de 4.000.">
-          <line class="grade" x1="78" y1="300" x2="700" y2="300"></line>
-          <line class="grade" x1="78" y1="233.2" x2="700" y2="233.2"></line>
-          <line class="grade" x1="78" y1="166.3" x2="700" y2="166.3"></line>
-          <line class="grade" x1="78" y1="99.5" x2="700" y2="99.5"></line>
-          <text class="m2" x="70" y="303" text-anchor="end">0</text>
-          <text class="m2" x="70" y="236" text-anchor="end">5 mil</text>
-          <text class="m2" x="70" y="169" text-anchor="end">10 mil</text>
-          <text class="m2" x="70" y="103" text-anchor="end">15 mil</text>
-
-          <line class="marca-nucleos" x1="492.7" y1="46" x2="492.7" y2="300"></line>
-          <text class="cap" x="497" y="52">4 NÚCLEOS DA MÁQUINA</text>
-
-          <line class="eixo" x1="78" y1="300" x2="700" y2="300"></line>
-          <text class="m2" x="78" y="318" text-anchor="middle">1</text>
-          <text class="m2" x="285.3" y="318" text-anchor="middle">2</text>
-          <text class="m2" x="492.7" y="318" text-anchor="middle">4</text>
-          <text class="m2" x="700" y="318" text-anchor="middle">8</text>
-          <text class="t2" x="389" y="340" text-anchor="middle">threads no pool</text>
-          <text class="t2" x="20" y="173" text-anchor="middle" transform="rotate(-90 20 173)">requisições por segundo</text>
-
-          <polyline class="serie s1" points="78,239.8 285.3,181.9 492.7,63.1 700,59.8"></polyline>
-          <polyline class="serie s2" points="78,239.6 285.3,217.0 492.7,211.5 700,208.6"></polyline>
-          <polyline class="serie s3" points="78,240.0 285.3,240.4 492.7,247.5 700,247.6"></polyline>
-
-          <circle class="pt f1" cx="78" cy="239.8" r="4"></circle>
-          <circle class="pt f1" cx="285.3" cy="181.9" r="4"></circle>
-          <circle class="pt f1" cx="492.7" cy="63.1" r="4"></circle>
-          <circle class="pt f1" cx="700" cy="59.8" r="4"></circle>
-          <rect class="pt f2" x="74" y="235.6" width="8" height="8" rx="1"></rect>
-          <rect class="pt f2" x="281.3" y="213" width="8" height="8" rx="1"></rect>
-          <rect class="pt f2" x="488.7" y="207.5" width="8" height="8" rx="1"></rect>
-          <rect class="pt f2" x="696" y="204.6" width="8" height="8" rx="1"></rect>
-          <polygon class="pt f3" points="78,235.5 82.5,243.5 73.5,243.5"></polygon>
-          <polygon class="pt f3" points="285.3,235.9 289.8,243.9 280.8,243.9"></polygon>
-          <polygon class="pt f3" points="492.7,243 497.2,251 488.2,251"></polygon>
-          <polygon class="pt f3" points="700,243.1 704.5,251.1 695.5,251.1"></polygon>
-
-          <text class="val f1" x="708" y="62">17.968</text>
-          <text class="val f2" x="708" y="212">6.840</text>
-          <text class="val f3" x="708" y="255">3.916</text>
-
-          <line class="serie s1" x1="78" y1="26" x2="100" y2="26"></line>
-          <text class="t2" x="106" y="30">100% leitura</text>
-          <line class="serie s2" x1="195" y1="26" x2="217" y2="26"></line>
-          <text class="t2" x="223" y="30">70% leitura</text>
-          <line class="serie s3" x1="305" y1="26" x2="327" y2="26"></line>
-          <text class="t2" x="333" y="30">só escrita</text>
-        </svg>
-      </div>
-      <figcaption>A carga só de leitura escala quase linearmente até o número de núcleos da máquina
-        (1&nbsp;→&nbsp;2&nbsp;→&nbsp;4 threads rendem 1,00&nbsp;→&nbsp;1,96&nbsp;→&nbsp;3,93×) e depois estabiliza,
-        porque os leitores dividem o lock. A carga só de escrita não escala em nenhum ponto: a seção crítica é
-        exclusiva, e acrescentar threads só aumenta a fila na porta.</figcaption>
-    </figure>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th rowspan="2">Threads</th>
-            <th colspan="2">100% leitura</th>
-            <th colspan="2">70% leitura</th>
-            <th colspan="2">Só escrita</th>
-          </tr>
-          <tr>
-            <th>req/s</th><th>espera no lock</th>
-            <th>req/s</th><th>espera no lock</th>
-            <th>req/s</th><th>espera no lock</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>1</td><td>4.505</td><td>0,17 µs</td><td>4.517</td><td>0,15 µs</td><td>4.489</td><td>0,12 µs</td></tr>
-          <tr><td>2</td><td>8.837</td><td>0,17 µs</td><td>6.210</td><td>88 µs</td><td>4.458</td><td>208 µs</td></tr>
-          <tr><td>4</td><td>17.721</td><td>0,15 µs</td><td>6.623</td><td>354 µs</td><td>3.928</td><td>774 µs</td></tr>
-          <tr><td>8</td><td>17.968</td><td>0,13 µs</td><td>6.840</td><td>925 µs</td><td>3.916</td><td>1.799 µs</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p class="note">A coluna da espera no lock é a que fecha o argumento: na carga de leitura ela fica em
-      décimos de microssegundo por mais threads que existam — os leitores entram juntos. Na carga de escrita ela
-      cresce proporcionalmente ao número de threads, porque cada escritor espera todos os anteriores. É o mesmo
-      fenômeno da figura 2, agora em número.</p>
-
-    <p class="note">Sem custo simulado (<code>--custo-us 0</code>) o resultado se inverte: uma thread rende
-      ~105.000 req/s e mais threads pioram para ~40.000. Com trabalho de poucos nanossegundos por requisição, o
-      custo de sincronizar as threads supera o que o paralelismo economiza — o gargalo passa a ser o IPC, não o
-      banco. Vale registrar isso no relatório: é a lei de Amdahl aparecendo na prática, e não um defeito da
-      implementação.</p>
   </section>
 
   <section>
     <div class="prose">
       <p class="eyebrow">ESTRUTURA</p>
-      <h2>Árvore de arquivos</h2>
-      <p>Três camadas independentes — <code>ipc/</code>, <code>servidor/</code>, <code>cliente/</code> — sobre um
-        contrato comum em <code>common/</code>. Cabeçalhos em <code>include/</code>, implementação espelhada em
-        <code>src/</code>: é o corte que permite o trio trabalhar em paralelo sem conflito.</p>
+      <h2>Os arquivos do projeto</h2>
     </div>
 
-<pre>minidb-ipc/
-├── <span class="k">Makefile</span>                       <span class="c"># gera bin/servidor e bin/cliente (-pthread -lrt)</span>
-├── README.md                     <span class="c"># compilar, executar, reproduzir os testes</span>
-├── .gitignore                    <span class="c"># bin/ obj/ data/logs/ resultados/*.csv</span>
-│
-├── include/
-│   ├── common/                   <span class="c"># CONTRATO — travado antes de qualquer código</span>
-│   │   ├── registro.hpp          <span class="c"># struct Registro { int id; char nome[50]; }</span>
-│   │   ├── protocolo.hpp         <span class="c"># Op, Status, Requisicao, Resposta (POD, tam. fixo)</span>
-│   │   ├── config.hpp            <span class="c"># nomes de shm/FIFO/sem, N_SLOTS, N_THREADS</span>
-│   │   └── log.hpp               <span class="c"># log com timestamp e id da thread</span>
-│   ├── ipc/                      <span class="c"># CAMADA IPC — só objetos do kernel</span>
-│   │   ├── shm_region.hpp        <span class="c"># RAII: shm_open + ftruncate + mmap + unlink</span>
-│   │   ├── named_sem.hpp         <span class="c"># RAII: sem_open / sem_wait / sem_post / sem_unlink</span>
-│   │   ├── shm_ring.hpp          <span class="c"># ring buffer produtor-consumidor sobre a shm</span>
-│   │   └── fifo_channel.hpp      <span class="c"># RAII: mkfifo + open + read/write de Resposta</span>
-│   ├── servidor/                 <span class="c"># CONCORRÊNCIA — threads e exclusão mútua</span>
-│   │   ├── rw_lock.hpp           <span class="c"># leitores-escritores: pthread_mutex_t + sem_t</span>
-│   │   ├── banco.hpp             <span class="c"># tabela std::vector&lt;Registro&gt; guardada pelo rw_lock</span>
-│   │   ├── fila_tarefas.hpp      <span class="c"># fila bloqueante: mutex + pthread_cond_t</span>
-│   │   ├── pool_threads.hpp      <span class="c"># pthread_create / pthread_join dos N workers</span>
-│   │   ├── executor.hpp          <span class="c"># aplica INSERT / DELETE / SELECT / UPDATE</span>
-│   │   ├── persistencia.hpp      <span class="c"># carrega e salva data/banco.txt</span>
-│   │   └── metricas.hpp          <span class="c"># latência, throughput, espera no lock</span>
-│   └── cliente/
-│       ├── parser.hpp            <span class="c"># "SELECT nome WHERE id=5" → Requisicao</span>
-│       └── gerador_carga.hpp     <span class="c"># carga de arquivo ou sintética (mix leitura/escrita)</span>
-│
-├── src/                          <span class="c"># espelha include/, 1 .cpp por cabeçalho</span>
-│   ├── common/   protocolo.cpp · config.cpp · log.cpp
-│   ├── ipc/      shm_region.cpp · named_sem.cpp · shm_ring.cpp · fifo_channel.cpp
-│   ├── servidor/
-│   │   ├── <span class="k">main.cpp</span>               <span class="c"># BINÁRIO 1: cria canais, sobe o pool, despacha</span>
-│   │   └── rw_lock.cpp · banco.cpp · fila_tarefas.cpp · pool_threads.cpp
-│   │       executor.cpp · persistencia.cpp · metricas.cpp
-│   └── cliente/
-│       ├── <span class="k">main.cpp</span>               <span class="c"># BINÁRIO 2: thread produtora + thread receptora</span>
-│       └── parser.cpp · gerador_carga.cpp
-│
-├── data/
-│   ├── banco.inicial.txt         <span class="c"># estado carregado na subida do servidor</span>
-│   ├── cargas/                   <span class="c"># basica.txt · so_leitura.txt · mista.txt · disputa_id.txt</span>
-│   └── logs/                     <span class="c"># servidor.log e cliente.log (gerados)</span>
-│
-├── scripts/
-│   ├── demo.sh                   <span class="c"># sobe o servidor, roda 1 cliente, mostra o log</span>
-│   ├── multi_cliente.sh          <span class="c"># vários clientes disputando o mesmo ring</span>
-│   ├── benchmark.sh              <span class="c"># varia N_THREADS (1,2,4,8) e o mix de operações</span>
-│   └── plot.py                   <span class="c"># gráficos do relatório a partir dos CSVs</span>
-│
-├── tests/
-│   ├── test_ipc.cpp              <span class="c"># ring cheio, ring vazio, cliente antes do servidor</span>
-│   ├── test_rw_lock.cpp          <span class="c"># N leitores juntos, escritor exclusivo, sem starvation</span>
-│   └── test_corrida.cpp          <span class="c"># mesma carga SEM lock: exibe a condição de corrida</span>
-│
-├── resultados/                   <span class="c"># CSVs e gráficos citados no relatório</span>
-└── docs/
-    ├── arquitetura.md            <span class="c"># este documento</span>
-    ├── fluxo.svg                 <span class="c"># figura 1</span>
-    └── relatorio/                <span class="c"># artigo em PDF (ABNT) + fontes</span></pre>
+<pre>├── <span class="k">cliente.c</span>     <span class="c">programa 1: monta as requisições e escreve na memória compartilhada</span>
+├── <span class="k">servidor.c</span>    <span class="c">programa 2: cria a memória, sobe as 4 threads e executa na tabela</span>
+├── banco.h      <span class="c">structs e constantes que os dois programas precisam conhecer</span>
+├── banco.txt    <span class="c">os dados salvos, no formato id;nome</span>
+├── Makefile     <span class="c">compila os dois programas</span>
+└── log.txt      <span class="c">gerado: o que cada thread fez</span></pre>
 
-    <p class="note"><code>tests/test_corrida.cpp</code> não é enfeite: o enunciado pede análise dos resultados, e a
-      forma mais direta de mostrar que a exclusão mútua funciona é rodar a mesma carga sem ela e comparar as
-      contagens finais da tabela.</p>
-  </section>
-
-  <section>
-    <div class="prose">
-      <p class="eyebrow">CONTRATO</p>
-      <h2>O que precisa estar fechado primeiro</h2>
-      <p>Structs POD de tamanho fixo, sem ponteiros e sem <code>std::string</code>: um slot do ring e uma mensagem
-        do FIFO são cópias byte a byte, então o mesmo cabeçalho vale para os dois binários.</p>
-    </div>
-
-<pre><span class="c">// include/common/protocolo.hpp</span>
-<span class="k">enum class</span> Op     : uint8_t { INSERT, DELETE, SELECT, UPDATE };
-<span class="k">enum class</span> Status : uint8_t { OK, NAO_ENCONTRADO, ID_DUPLICADO, TABELA_CHEIA, MALFORMADA };
-
-<span class="k">struct</span> Requisicao {   <span class="c">// cliente → servidor, via ring na memória compartilhada</span>
-    uint32_t id_req;      <span class="c">// correlaciona requisição e resposta</span>
-    int32_t  pid_cliente; <span class="c">// permite vários clientes no mesmo ring</span>
-    Op       op;
-    int32_t  id;          <span class="c">// chave do registro</span>
-    char     nome[50];    <span class="c">// carga útil de INSERT / UPDATE</span>
-};
-
-<span class="k">struct</span> Resposta {     <span class="c">// servidor → cliente, via FIFO nomeado</span>
-    uint32_t id_req;
-    Status   status;
-    Registro registro;    <span class="c">// preenchido em SELECT</span>
-    uint64_t us_no_lock;  <span class="c">// tempo esperando o lock — alimenta as métricas</span>
-    uint32_t worker;      <span class="c">// qual thread do pool atendeu</span>
-};</pre>
-  </section>
-
-  <section>
-    <div class="prose">
-      <p class="eyebrow">CONFORMIDADE</p>
-      <h2>Cada regra obrigatória e onde ela vive</h2>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Requisito do enunciado</th><th>Como o desenho atende</th><th>Arquivo</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Dois binários, processos de SO distintos</td>
-            <td>Dois <code>main()</code> separados, dois alvos no Makefile; nenhum código compartilha estado em memória privada</td>
-            <td class="p">src/servidor/main.cpp<br>src/cliente/main.cpp</td>
-          </tr>
-          <tr>
-            <td>IPC real, não arquivo com polling</td>
-            <td>Requisições em memória compartilhada POSIX com semáforos nomeados; respostas em FIFO nomeado com <code>read()</code> bloqueante</td>
-            <td class="p">ipc/shm_ring.cpp<br>ipc/fifo_channel.cpp</td>
-          </tr>
-          <tr>
-            <td>Servidor com múltiplas threads (pool)</td>
-            <td><code>N</code> workers criados com <code>pthread_create</code> consumindo uma fila bloqueante alimentada pela thread despachante</td>
-            <td class="p">servidor/pool_threads.cpp<br>servidor/fila_tarefas.cpp</td>
-          </tr>
-          <tr>
-            <td>Tabela protegida por mutex ou semáforo real</td>
-            <td><code>pthread_mutex_t</code> + <code>sem_t</code> compondo um lock de leitores-escritores; leitura compartilhada, escrita exclusiva</td>
-            <td class="p">servidor/rw_lock.cpp<br>servidor/banco.cpp</td>
-          </tr>
-          <tr>
-            <td>INSERT, DELETE, SELECT e UPDATE por ID</td>
-            <td>Uma função por operação, todas sobre a mesma tabela, cada uma declarando se é leitora ou escritora</td>
-            <td class="p">servidor/executor.cpp</td>
-          </tr>
-          <tr>
-            <td>Estrutura interna do banco conforme o enunciado</td>
-            <td><code>struct Registro { int id; char nome[50]; }</code> em <code>std::vector</code>, persistido em texto</td>
-            <td class="p">common/registro.hpp<br>servidor/persistencia.cpp</td>
-          </tr>
-          <tr>
-            <td>Respostas em segundo canal IPC ou log</td>
-            <td>Os dois: FIFO para o cliente e log em arquivo com timestamp, thread e tempo de espera</td>
-            <td class="p">ipc/fifo_channel.cpp<br>common/log.cpp</td>
-          </tr>
-          <tr>
-            <td>Resultados de simulação para o relatório</td>
-            <td>Bateria variando threads e mix de operações, saída em CSV, gráficos gerados por script</td>
-            <td class="p">scripts/benchmark.sh<br>servidor/metricas.cpp</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section>
-    <div class="prose">
-      <p class="eyebrow">DIVISÃO</p>
-      <h2>Três frentes, um contrato</h2>
-      <p>O trio fecha junto <code>common/protocolo.hpp</code> e <code>common/config.hpp</code>; a partir daí cada
-        frente compila e testa a sua camada isoladamente.</p>
-    </div>
-    <div class="split">
-      <div class="card">
-        <h3>Frente 1 — IPC</h3>
-        <ul>
-          <li><code>shm_region</code>, <code>named_sem</code></li>
-          <li><code>shm_ring</code> (produtor-consumidor)</li>
-          <li><code>fifo_channel</code></li>
-          <li><code>tests/test_ipc.cpp</code></li>
-          <li>Apresenta: <code>shm_open</code>, <code>mmap</code>, <code>sem_open</code>, <code>mkfifo</code></li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Frente 2 — Concorrência</h3>
-        <ul>
-          <li><code>rw_lock</code>, <code>banco</code></li>
-          <li><code>fila_tarefas</code>, <code>pool_threads</code></li>
-          <li><code>executor</code>, <code>persistencia</code></li>
-          <li><code>test_rw_lock</code>, <code>test_corrida</code></li>
-          <li>Apresenta: seção crítica, condição de corrida, deadlock evitado</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Frente 3 — Cliente e medição</h3>
-        <ul>
-          <li><code>parser</code>, <code>gerador_carga</code></li>
-          <li><code>cliente/main.cpp</code></li>
-          <li><code>metricas</code>, <code>scripts/</code></li>
-          <li>CSVs, gráficos e tabelas</li>
-          <li>Apresenta: resultados, escalabilidade por nº de threads</li>
-        </ul>
-      </div>
-    </div>
+    <p class="note"><code>banco.h</code> existe porque cliente e servidor são processos separados e
+      precisam concordar sobre o formato exato das estruturas que atravessam a memória compartilhada.
+      Se um deles mudasse a <code>struct Requisicao</code>, o outro leria os bytes errados.</p>
   </section>
 
   <section>
     <div class="prose">
       <p class="eyebrow">EXECUÇÃO</p>
       <h2>Como rodar</h2>
-      <p>Só precisa de <code>g++</code> com C++17 e um Linux com POSIX shm e semáforos nomeados.
-        Nenhuma dependência externa. No Windows, use o WSL; no macOS não compila sem alterações,
-        porque <code>sem_init</code> lá devolve <code>ENOSYS</code>.</p>
+      <p>Precisa de Linux e <code>gcc</code>. No Windows, use o WSL.</p>
     </div>
 
-<pre><span class="c"># compila os dois binários</span>
-make
+<pre>make
 
-<span class="c"># demonstração ponta a ponta: sobe o servidor, roda um cliente, mostra o log</span>
-make demo
+<span class="c"># terminal 1</span>
+./servidor
 
-<span class="c"># manualmente, em dois terminais</span>
-./bin/servidor --threads 4
-./bin/cliente  --carga data/cargas/basica.txt
+<span class="c"># terminal 2 (com o servidor já no ar)</span>
+./cliente</pre>
 
-<span class="c"># vários processos cliente disputando o mesmo ring</span>
-./scripts/multi_cliente.sh 4 500
-
-<span class="c"># os três testes</span>
-make testes &amp;&amp; ./bin/test_ipc &amp;&amp; ./bin/test_rw_lock &amp;&amp; ./bin/test_corrida
-
-<span class="c"># bateria de medições + gráficos do relatório</span>
-./scripts/benchmark.sh &amp;&amp; python3 scripts/plot.py
-
-<span class="c"># compila com símbolos de depuração (F5 no VS Code faz isso sozinho)</span>
-make debug</pre>
-
-    <p class="note">O repositório já traz <code>.vscode/</code> configurado: <kbd>Ctrl+Shift+B</kbd>
-      compila, <strong>Tasks: Run Task</strong> lista demo, testes, múltiplos clientes e benchmark, e
-      <kbd>F5</kbd> sobe o servidor sob o gdb — com o painel <em>Call Stack</em> mostrando as threads
-      do pool uma a uma, que é a forma mais direta de demonstrar o paralelismo na apresentação.</p>
-
-    <p class="note">O servidor encerra com <kbd>Ctrl+C</kbd> ou <code>SIGTERM</code>: o sinal interrompe o
-      <code>sem_wait</code> da thread despachante, que fecha a fila, espera os workers drenarem o que sobrou,
-      salva o banco e remove a memória compartilhada, os semáforos e os FIFOs. Se algum processo for morto com
-      <code>-9</code> e deixar objetos de kernel para trás, <code>make limpar-ipc</code> resolve.</p>
+    <p>No VS Code, <code>Ctrl+Shift+5</code> divide o terminal integrado em dois painéis — um para
+      cada programa. O servidor imprime linha a linha o que cada thread está fazendo; como há uma
+      pausa proposital dentro da seção crítica, dá para acompanhar o revezamento na tela.</p>
   </section>
 
   <section>
     <div class="prose">
-      <p class="eyebrow">ESTADO</p>
-      <h2>O que está pronto e o que falta</h2>
+      <p class="eyebrow">CONCEITOS</p>
+      <h2>Os três pontos da matéria, no código</h2>
     </div>
-    <div class="split">
-      <div class="card">
-        <h3>Pronto</h3>
-        <ul>
-          <li>Dois binários compilando sem warning</li>
-          <li>Ring em shm + 3 semáforos nomeados</li>
-          <li>FIFO de respostas por cliente</li>
-          <li>Pool de N threads + fila bloqueante</li>
-          <li>Lock de leitores-escritores</li>
-          <li>As quatro operações e a persistência</li>
-          <li>Três testes passando</li>
-          <li>Benchmark, CSV e gráficos</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Falta</h3>
-        <ul>
-          <li>Relatório em PDF (ABNT)</li>
-          <li>Ensaio da apresentação</li>
-          <li>Deixar o repositório público</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Limites conhecidos</h3>
-        <ul>
-          <li>Busca linear na tabela: O(n) por requisição, suficiente para a escala do trabalho</li>
-          <li>Requisições de um mesmo cliente são atendidas em paralelo, então não há ordem garantida entre elas</li>
-          <li>A tabela vive em memória; o arquivo é gravado só no encerramento</li>
-        </ul>
-      </div>
+
+<pre><span class="c">/* 1. IPC — o cliente escreve na memória compartilhada (cliente.c) */</span>
+sem_wait(sem_vazias);              <span class="c">/* espera ter slot livre     */</span>
+sem_wait(sem_mutex);               <span class="c">/* entra na região do buffer */</span>
+buffer-&gt;requisicoes[buffer-&gt;fim] = req;
+buffer-&gt;fim = (buffer-&gt;fim + 1) % MAX_REQUISICOES;
+sem_post(sem_mutex);
+sem_post(sem_cheias);              <span class="c">/* avisa que chegou trabalho */</span>
+
+
+<span class="c">/* 2. Threads — o servidor cria o pool (servidor.c) */</span>
+<span class="k">for</span> (i = 0; i &lt; NUM_THREADS; i++) {
+    numeros[i] = i;
+    pthread_create(&amp;threads[i], NULL, trabalhador, &amp;numeros[i]);
+}
+
+
+<span class="c">/* 3. Exclusão mútua — a seção crítica (servidor.c) */</span>
+pthread_mutex_lock(&amp;mutex_tabela);     <span class="c">/* ---- entra ---- */</span>
+
+<span class="k">switch</span> (req.op) {
+    <span class="k">case</span> INSERT: op_insert(req.id, req.nome, resultado); <span class="k">break</span>;
+    <span class="k">case</span> SELECT: op_select(req.id, resultado);           <span class="k">break</span>;
+    <span class="k">case</span> UPDATE: op_update(req.id, req.nome, resultado); <span class="k">break</span>;
+    <span class="k">case</span> DELETE: op_delete(req.id, resultado);           <span class="k">break</span>;
+}
+
+pthread_mutex_unlock(&amp;mutex_tabela);   <span class="c">/* ---- sai ------ */</span></pre>
+
+    <p class="note">Sem o <code>pthread_mutex_lock</code>, duas threads poderiam inserir ao mesmo
+      tempo: as duas leriam <code>total_registros</code> com o mesmo valor, escreveriam na mesma
+      posição do vetor e um dos registros seria perdido. É exatamente a condição de corrida que a
+      exclusão mútua evita.</p>
+  </section>
+
+  <section>
+    <div class="prose">
+      <p class="eyebrow">CONFORMIDADE</p>
+      <h2>O que o enunciado pede e onde está</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Requisito</th><th>Onde está</th></tr></thead>
+        <tbody>
+          <tr><td>Cliente e servidor como executáveis distintos</td><td class="p">cliente.c · servidor.c</td></tr>
+          <tr><td>Comunicação por IPC real (memória compartilhada)</td><td class="p">shm_open + mmap</td></tr>
+          <tr><td>Servidor com pool de threads</td><td class="p">pthread_create × 4</td></tr>
+          <tr><td>Tabela protegida por mutex ou semáforo</td><td class="p">pthread_mutex_t mutex_tabela</td></tr>
+          <tr><td>INSERT, DELETE, SELECT e UPDATE por id</td><td class="p">op_insert · op_delete · op_select · op_update</td></tr>
+          <tr><td><code>struct { int id; char nome[50]; }</code></td><td class="p">banco.h — Registro</td></tr>
+          <tr><td>Respostas em arquivo de log</td><td class="p">log.txt</td></tr>
+          <tr><td>Banco salvo em arquivo</td><td class="p">banco.txt</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
+  <section>
+    <div class="prose">
+      <p class="eyebrow">PARA A APRESENTAÇÃO</p>
+      <h2>Duas perguntas prováveis</h2>
+      <ol>
+        <li><strong>Por que três semáforos e não um?</strong> Cada um resolve um problema
+          diferente: <code>vazias</code> e <code>cheias</code> fazem os processos esperarem sem gastar
+          CPU (buffer cheio e buffer vazio), e <code>mutex</code> impede que cliente e servidor mexam
+          nos índices <code>inicio</code> e <code>fim</code> ao mesmo tempo.</li>
+        <li><strong>As requisições são executadas na ordem em que foram enviadas?</strong> Não. As
+          quatro threads pegam requisições em paralelo, então a ordem entre elas não é garantida —
+          é consequência direta do paralelismo que o trabalho pede. O que o mutex garante é que a
+          tabela nunca fique inconsistente.</li>
+      </ol>
+    </div>
+  </section>
 
 </div>

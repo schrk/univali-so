@@ -1,13 +1,4 @@
-bin/
-obj/
-*.o
-*.d
-
-# gerados em tempo de execução
-data/logs/
-data/banco.txt
-
-# LaTeX do relatório
-docs/relatorio/*.aux
-docs/relatorio/*.log
-docs/relatorio/*.out
+# executáveis e arquivos gerados
+servidor
+cliente
+log.txt
