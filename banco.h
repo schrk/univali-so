@@ -12,7 +12,9 @@
 /* Tamanhos do sistema */
 #define MAX_REGISTROS    100   /* quantos registros a tabela comporta        */
 #define MAX_REQUISICOES   10   /* slots do buffer na memória compartilhada   */
-#define NUM_THREADS        4   /* threads do servidor (pool)                 */
+#ifndef NUM_THREADS                 /* pode ser mudado na compilação:            */
+#define NUM_THREADS        4        /* gcc -DNUM_THREADS=2 ...                   */
+#endif
 
 /* Nomes dos objetos do sistema operacional */
 #define SHM_NOME    "/banco_memoria"

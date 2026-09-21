@@ -24,7 +24,7 @@ text{font-family:"IBM Plex Sans",Arial,sans-serif}
           </defs>
 
           <!-- zonas -->
-          <rect class="zona" x="14" y="26" width="672" height="98" rx="5"></rect>
+          <rect class="zona" x="14" y="26" width="672" height="106" rx="5"></rect>
           <text class="cap" x="24" y="44">PROCESSO 1</text>
           <rect class="zona" x="14" y="160" width="672" height="140" rx="5"></rect>
           <text class="cap" x="24" y="178">SISTEMA OPERACIONAL</text>
@@ -32,12 +32,12 @@ text{font-family:"IBM Plex Sans",Arial,sans-serif}
           <text class="cap" x="24" y="354">PROCESSO 2</text>
 
           <!-- 1. cliente -->
-          <rect class="bx" x="200" y="52" width="300" height="60" rx="4"></rect>
-          <text class="t" x="350" y="76" text-anchor="middle">Cliente monta a requisição</text>
-          <text class="m2" x="350" y="95" text-anchor="middle">cliente.c</text>
-          <text class="m2" x="686" y="80" text-anchor="end">Requisicao { op, id, nome }</text>
+          <rect class="bx" x="180" y="52" width="340" height="68" rx="4"></rect>
+          <text class="t" x="350" y="74" text-anchor="middle">Cliente monta a requisição</text>
+          <text class="m2" x="350" y="92" text-anchor="middle">cliente.c</text>
+          <text class="m2" x="350" y="109" text-anchor="middle">Requisicao { op, id, nome }</text>
 
-          <line class="ar" x1="350" y1="112" x2="350" y2="184" marker-end="url(#seta)"></line>
+          <line class="ar" x1="350" y1="120" x2="350" y2="184" marker-end="url(#seta)"></line>
           <text class="alab" x="360" y="153">sem_post(cheias)</text>
 
           <!-- 2. memória compartilhada -->
@@ -52,8 +52,6 @@ text{font-family:"IBM Plex Sans",Arial,sans-serif}
           <rect class="slot-vazio" x="398" y="234" width="42" height="22" rx="2"></rect>
           <text class="m2" x="450" y="249">buffer circular</text>
           <text class="m2" x="168" y="274">semáforos: vazias · cheias · mutex</text>
-          <text class="m2" x="686" y="228" text-anchor="end">cliente escreve</text>
-          <text class="m2" x="686" y="244" text-anchor="end">servidor lê</text>
 
           <line class="ar" x1="350" y1="286" x2="350" y2="360" marker-end="url(#seta)"></line>
           <text class="alab" x="360" y="328">sem_wait(cheias)</text>
@@ -70,7 +68,6 @@ text{font-family:"IBM Plex Sans",Arial,sans-serif}
           <text class="m" x="401" y="430" text-anchor="middle">thread 2</text>
           <rect class="bx-in" x="454" y="410" width="90" height="30" rx="3"></rect>
           <text class="m" x="499" y="430" text-anchor="middle">thread 3</text>
-          <text class="m2" x="686" y="430" text-anchor="end">mesma função</text>
 
           <line class="ar" x1="350" y1="454" x2="350" y2="500" marker-end="url(#seta)"></line>
           <text class="alab" x="360" y="480">pthread_mutex_lock</text>
@@ -80,12 +77,10 @@ text{font-family:"IBM Plex Sans",Arial,sans-serif}
           <text class="cap-crit" x="350" y="521" text-anchor="middle">SEÇÃO CRÍTICA — UMA THREAD POR VEZ</text>
           <text class="t" x="350" y="541" text-anchor="middle">Tabela de dados</text>
           <text class="m2" x="350" y="559" text-anchor="middle">Registro tabela[100] — INSERT · SELECT · UPDATE · DELETE</text>
-          <text class="m2" x="686" y="545" text-anchor="end">protegida por mutex</text>
 
           <line class="ar" x1="350" y1="574" x2="350" y2="600" marker-end="url(#seta)"></line>
 
           <!-- 5. log -->
           <rect class="bx" x="200" y="602" width="300" height="34" rx="4"></rect>
           <text class="m" x="350" y="624" text-anchor="middle">log.txt · banco.txt</text>
-          <text class="m2" x="686" y="624" text-anchor="end">resultado de cada requisição</text>
         </svg>
