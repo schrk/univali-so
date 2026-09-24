@@ -1,0 +1,583 @@
+<title>Roteiro da Apresentação M1</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap">
+<style>
+  :root {
+    --ground:#eef1f5; --surface:#ffffff; --surface-2:#f7f9fb;
+    --ink:#16202b; --ink-2:#495a6b; --ink-3:#75858f;
+    --line:#d4dce4; --line-strong:#b4c1cd;
+    --flow:#0f766e; --flow-bg:#e6f1f0;
+    --crit:#a8531a; --crit-bg:#fbf0e6;
+    --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+    --serif:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0f141a; --surface:#161d25; --surface-2:#1b232c;
+      --ink:#e3eaf1; --ink-2:#a7b5c2; --ink-3:#7d8b98;
+      --line:#2a3440; --line-strong:#3d4a57;
+      --flow:#41bcac; --flow-bg:#122a2c;
+      --crit:#e2974c; --crit-bg:#2b2118;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0f141a; --surface:#161d25; --surface-2:#1b232c;
+    --ink:#e3eaf1; --ink-2:#a7b5c2; --ink-3:#7d8b98;
+    --line:#2a3440; --line-strong:#3d4a57;
+    --flow:#41bcac; --flow-bg:#122a2c;
+    --crit:#e2974c; --crit-bg:#2b2118;
+  }
+
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.6;
+    padding-block: 40px 72px; padding-left: 20px; padding-right: 20px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 46px; }
+  p { margin: 0 0 12px; max-width: 68ch; }
+  p:last-child { margin-bottom: 0; }
+
+  h1 { font-size: 31px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15;
+       margin: 0 0 10px; text-wrap: balance; }
+  h2 { font-size: 19px; font-weight: 600; margin: 0 0 8px; text-wrap: balance; }
+  h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+  .eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em;
+             color: var(--flow); margin: 0 0 10px; }
+  .lead { font-size: 16px; color: var(--ink-2); font-family: var(--serif); max-width: 66ch; }
+
+  header { border-bottom: 1px solid var(--line); padding-bottom: 24px; }
+  section { display: flex; flex-direction: column; gap: 16px; }
+
+  /* fala: o que dizer em voz alta */
+  .fala {
+    font-family: var(--serif); font-size: 15.5px; color: var(--ink);
+    border-left: 2px solid var(--flow); padding: 4px 0 4px 16px; margin: 0;
+    max-width: 66ch;
+  }
+  .fala + .fala { margin-top: 10px; }
+
+  /* roteiro cronometrado */
+  .roteiro { display: flex; flex-direction: column; gap: 2px; }
+  .etapa {
+    display: grid; grid-template-columns: 76px 1fr; gap: 18px;
+    padding: 14px 0; border-top: 1px solid var(--line);
+  }
+  .etapa:last-child { border-bottom: 1px solid var(--line); }
+  .tempo { font-family: var(--mono); font-size: 12px; color: var(--flow);
+           padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .etapa h3 { margin-bottom: 8px; }
+  .etapa .quem { font-size: 11px; color: var(--ink-3); font-weight: 400;
+                 letter-spacing: 0.04em; margin-left: 8px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line);
+                border-radius: 5px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 620px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line);
+           vertical-align: top; }
+  th { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; color: var(--ink-3);
+       background: var(--surface-2); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.f { font-family: var(--mono); font-size: 12px; color: var(--flow); white-space: nowrap; }
+  td.diz { font-family: var(--serif); color: var(--ink-2); }
+
+  pre { margin: 0; background: var(--surface); border: 1px solid var(--line);
+        border-radius: 5px; padding: 14px 16px; overflow-x: auto;
+        font-family: var(--mono); font-size: 12px; line-height: 1.65; color: var(--ink); }
+  pre .c { color: var(--ink-3); }
+  pre .k { color: var(--flow); }
+  code { font-family: var(--mono); font-size: 0.89em; background: var(--surface-2);
+         border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px; }
+
+  .momento { border: 1px solid var(--line); border-radius: 5px;
+             background: var(--surface); padding: 16px 18px;
+             display: flex; flex-direction: column; gap: 10px; }
+  .momento .onde { font-family: var(--mono); font-size: 11.5px; color: var(--flow); }
+  .momentos { display: flex; flex-direction: column; gap: 12px; }
+
+  .perguntas { display: flex; flex-direction: column; gap: 0; }
+  .qa { padding: 16px 0; border-top: 1px solid var(--line); }
+  .qa:last-child { border-bottom: 1px solid var(--line); }
+  .qa .q { font-weight: 600; font-size: 14.5px; margin: 0 0 8px; max-width: 66ch; }
+  .qa .a { font-family: var(--serif); color: var(--ink-2); font-size: 14.5px;
+           margin: 0; max-width: 68ch; }
+  .qa .a + .a { margin-top: 8px; }
+
+  .split { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 5px;
+          padding: 15px 16px; }
+  .card h3 { color: var(--flow); font-size: 10.5px; letter-spacing: 0.1em;
+             text-transform: uppercase; margin-bottom: 8px; }
+  .card ul { margin: 0; padding-left: 17px; font-size: 13.5px; color: var(--ink-2); }
+  .card li { margin-bottom: 4px; }
+
+  .aviso { border-left: 2px solid var(--crit); padding: 3px 0 3px 16px;
+           font-size: 14px; color: var(--ink-2); max-width: 68ch; font-family: var(--serif); }
+
+  @media (max-width: 720px) {
+    .split { grid-template-columns: 1fr; }
+    .etapa { grid-template-columns: 1fr; gap: 6px; }
+    h1 { font-size: 26px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">SISTEMAS OPERACIONAIS &middot; AVALIAÇÃO M1</p>
+    <h1>Roteiro da apresentação</h1>
+    <p class="lead">O que falar, em que ordem, o que cada função do código faz e as perguntas que
+      provavelmente virão. As frases em <span style="font-style:italic">itálico com barra verde</span>
+      são para dizer em voz alta — não decore, use como apoio.</p>
+  </header>
+
+  <section>
+    <p class="eyebrow">ABERTURA</p>
+    <h2>As três frases que enquadram tudo</h2>
+    <p>Se o professor só ouvir o começo, ele precisa entender o trabalho inteiro. Comece pelo
+      problema, não pelo código.</p>
+    <p class="fala">"O trabalho simula o miolo de um gerenciador de banco de dados. São dois
+      programas separados, que rodam como processos independentes do sistema operacional: um
+      cliente, que faz pedidos, e um servidor, que executa esses pedidos sobre uma tabela."</p>
+    <p class="fala">"Como são processos diferentes, um não enxerga as variáveis do outro. Então eles
+      conversam por memória compartilhada, coordenada por semáforos."</p>
+    <p class="fala">"E o servidor atende com quatro threads ao mesmo tempo. Como as quatro mexem na
+      mesma tabela, o acesso a ela é protegido por um mutex — é a seção crítica do programa."</p>
+    <p>Pronto: IPC, threads e exclusão mútua, que são exatamente os três conceitos que a avaliação
+      cobra. O resto da apresentação é mostrar cada um funcionando.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">ROTEIRO</p>
+    <h2>Dez minutos, em sete blocos</h2>
+
+    <div class="roteiro">
+      <div class="etapa">
+        <div class="tempo">00:00</div>
+        <div>
+          <h3>Abertura<span class="quem">pessoa 1</span></h3>
+          <p>As três frases acima. Sem slide, sem código na tela ainda — só o problema.</p>
+        </div>
+      </div>
+
+      <div class="etapa">
+        <div class="tempo">01:00</div>
+        <div>
+          <h3>O fluxo, na Figura 1<span class="quem">pessoa 1</span></h3>
+          <p>Abra a figura do relatório e percorra de cima para baixo, com o dedo na tela: cliente →
+            memória compartilhada → servidor com as threads → tabela dentro da seção crítica → log.</p>
+          <p class="fala">"A coluna do meio é a fronteira entre os dois processos. Tudo que atravessa
+            ali é objeto do sistema operacional — não tem chamada de função de um programa para o
+            outro."</p>
+        </div>
+      </div>
+
+      <div class="etapa">
+        <div class="tempo">02:30</div>
+        <div>
+          <h3>Os cinco arquivos<span class="quem">pessoa 1</span></h3>
+          <p>Mostre a pasta. Dez segundos por arquivo, sem abrir nenhum ainda. Explique por que
+            <code>banco.h</code> existe — é a pergunta mais provável dessa parte.</p>
+          <p class="fala">"O banco.h tem as structs que os dois programas precisam conhecer. Como
+            eles são compilados separados, os dois têm que concordar byte a byte sobre o formato do
+            que passa pela memória compartilhada."</p>
+        </div>
+      </div>
+
+      <div class="etapa">
+        <div class="tempo">03:30</div>
+        <div>
+          <h3>O código, nos quatro trechos que importam<span class="quem">pessoas 2 e 3</span></h3>
+          <p>Não passe o arquivo inteiro. Vá direto aos quatro momentos listados mais abaixo, nesta
+            ordem: envio pelo cliente, criação dos recursos no servidor, o laço da thread, e uma
+            operação da tabela.</p>
+        </div>
+      </div>
+
+      <div class="etapa">
+        <div class="tempo">06:30</div>
+        <div>
+          <h3>Demonstração ao vivo<span class="quem">quem estiver na máquina</span></h3>
+          <p>Dois terminais lado a lado. Os comandos estão na seção da demonstração.</p>
+        </div>
+      </div>
+
+      <div class="etapa">
+        <div class="tempo">08:30</div>
+        <div>
+          <h3>O resultado da medição<span class="quem">pessoa 3</span></h3>
+          <p>Mostre o Quadro 5 do relatório: 1, 2, 4 e 8 threads, todas em 2,41 s. Explique antes que
+            perguntem — esse é o ponto que mais rende nota se bem explicado, e mais confunde se
+            passar batido.</p>
+          <p class="fala">"O tempo não cai porque todo o processamento está dentro da seção crítica.
+            O mutex deixa uma thread por vez, então as operações acabam em fila mesmo havendo quatro
+            threads. As threads estão trabalhando — dá para ver no log que as quatro recebem
+            requisições — mas a disputa se resolve na porta da seção crítica."</p>
+        </div>
+      </div>
+
+      <div class="etapa">
+        <div class="tempo">09:30</div>
+        <div>
+          <h3>Fechamento<span class="quem">pessoa 3</span></h3>
+          <p class="fala">"Se o trabalho continuasse, o próximo passo seria tirar de dentro do mutex
+            tudo que não toca a tabela, e trocar o mutex por um mecanismo que deixe vários SELECT
+            lerem ao mesmo tempo, já que leitura não altera nada."</p>
+          <p>Termine assim: mostra que vocês entenderam o limite da solução, não só que ela funciona.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">O CÓDIGO</p>
+    <h2>Função por função</h2>
+    <p>Duzentas e noventa linhas no servidor, cento e quinze no cliente. Ninguém vai ler tudo na
+      apresentação — mas se o professor apontar para qualquer função, a resposta está aqui.</p>
+
+    <h3 style="margin-top:8px">banco.h — o contrato</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Definição</th><th>O que é</th><th>Como explicar</th></tr></thead>
+        <tbody>
+          <tr><td class="f">Registro</td><td>id inteiro e nome de 50 caracteres</td>
+              <td class="diz">É a estrutura que o próprio enunciado manda usar.</td></tr>
+          <tr><td class="f">Operacao</td><td>INSERT, DELETE, SELECT, UPDATE e FIM</td>
+              <td class="diz">FIM não é operação do banco: é o aviso de que o cliente acabou.</td></tr>
+          <tr><td class="f">Requisicao</td><td>operação, id e nome</td>
+              <td class="diz">É o que atravessa a memória compartilhada, copiado byte a byte.</td></tr>
+          <tr><td class="f">Buffer</td><td>vetor de requisições + índices inicio e fim</td>
+              <td class="diz">É o que fica dentro da memória compartilhada. Circular: os índices voltam ao começo com o resto da divisão.</td></tr>
+          <tr><td class="f">NUM_THREADS</td><td>quantas threads o servidor cria</td>
+              <td class="diz">Dá para mudar na compilação com <code>-DNUM_THREADS=1</code>; foi assim que medimos a tabela de tempos.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:20px">cliente.c — duas funções</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Função</th><th>O que faz</th><th>Como explicar</th></tr></thead>
+        <tbody>
+          <tr><td class="f">enviar()</td>
+              <td>Monta a Requisicao e a coloca no buffer, entre os três semáforos</td>
+              <td class="diz">É o lado produtor. Espera slot livre, entra no buffer, escreve, sai e avisa que chegou trabalho.</td></tr>
+          <tr><td class="f">main()</td>
+              <td>Abre a memória e os semáforos que o servidor criou, envia as oito requisições e depois um FIM para cada thread</td>
+              <td class="diz">O cliente não cria nada — só abre pelo nome o que já existe. Se o servidor não estiver no ar, ele avisa e sai.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:20px">servidor.c — dez funções, em quatro grupos</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Função</th><th>O que faz</th><th>Como explicar</th></tr></thead>
+        <tbody>
+          <tr><td class="f">main()</td>
+              <td>Carrega o banco, cria a memória compartilhada e os três semáforos, cria as quatro threads, espera todas com pthread_join, salva o banco e apaga os objetos do sistema</td>
+              <td class="diz">É a montagem e a desmontagem. O join é importante: sem ele o banco poderia ser salvo com uma thread ainda alterando a tabela.</td></tr>
+          <tr><td class="f">trabalhador()</td>
+              <td>O laço que as quatro threads executam: tira uma requisição do buffer, tranca o mutex, executa, destranca e escreve no log</td>
+              <td class="diz">É o coração do trabalho. As quatro threads rodam esta mesma função ao mesmo tempo.</td></tr>
+          <tr><td class="f">op_insert()</td>
+              <td>Recusa id repetido, recusa tabela cheia, senão acrescenta no fim do vetor e soma um no total</td>
+              <td class="diz">É o caso clássico de corrida: ler o total, escrever na posição, somar um. Sem mutex, duas threads fariam isso ao mesmo tempo e um registro se perderia.</td></tr>
+          <tr><td class="f">op_select()</td>
+              <td>Procura o id e monta a resposta com o nome, ou "nao encontrado"</td>
+              <td class="diz">Única operação que só lê. É por isso que ela poderia rodar em paralelo, se o lock permitisse.</td></tr>
+          <tr><td class="f">op_update()</td>
+              <td>Acha o registro e troca o nome</td>
+              <td class="diz">Altera a tabela, então precisa do mutex como as outras escritas.</td></tr>
+          <tr><td class="f">op_delete()</td>
+              <td>Acha o registro, puxa os seguintes uma posição para trás e diminui o total</td>
+              <td class="diz">É o que mais mexe no vetor. Se duas threads fizessem isso juntas, a tabela ficaria embaralhada.</td></tr>
+          <tr><td class="f">procurar_posicao()</td>
+              <td>Percorre a tabela e devolve o índice do id, ou −1</td>
+              <td class="diz">Busca linear. Suficiente para cem registros; num banco de verdade seria um índice.</td></tr>
+          <tr><td class="f">escrever_log()</td>
+              <td>Escreve a linha na tela e no log.txt, com o número da thread, sob um mutex próprio</td>
+              <td class="diz">Tem mutex próprio porque o log também é recurso compartilhado — sem ele, as mensagens das quatro threads sairiam misturadas no meio da frase.</td></tr>
+          <tr><td class="f">carregar_banco()</td>
+              <td>Lê o banco.txt na subida, linha a linha no formato id;nome</td>
+              <td class="diz">Roda antes das threads existirem, então não precisa de proteção.</td></tr>
+          <tr><td class="f">salvar_banco()</td>
+              <td>Grava a tabela no banco.txt no encerramento</td>
+              <td class="diz">Roda depois do join, quando nenhuma thread existe mais. Mesma razão: sem concorrência, sem mutex.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="aviso">Repare no padrão que vale como resposta pronta: as funções que rodam enquanto as
+      threads existem precisam de proteção; as que rodam antes de criá-las ou depois do
+      <code>pthread_join</code> não precisam. Se perguntarem por que <code>carregar_banco</code> não
+      tem mutex, é essa a resposta.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">OS QUATRO MOMENTOS</p>
+    <h2>O que abrir na tela, e nesta ordem</h2>
+
+    <div class="momentos">
+      <div class="momento">
+        <div class="onde">1 · cliente.c — função enviar()</div>
+        <pre><span class="k">sem_wait</span>(sem_vazias);   <span class="c">/* espera ter slot livre     */</span>
+<span class="k">sem_wait</span>(sem_mutex);    <span class="c">/* entra na regiao do buffer */</span>
+
+buffer-&gt;requisicoes[buffer-&gt;fim] = req;
+buffer-&gt;fim = (buffer-&gt;fim + 1) % MAX_REQUISICOES;
+
+<span class="k">sem_post</span>(sem_mutex);    <span class="c">/* libera o buffer           */</span>
+<span class="k">sem_post</span>(sem_cheias);   <span class="c">/* avisa que chegou pedido   */</span></pre>
+        <p class="fala">"Aqui está o IPC. São seis linhas, mas cada semáforo resolve uma coisa
+          diferente: vazias e cheias fazem os dois lados esperarem dormindo, sem gastar processador
+          verificando o buffer o tempo todo; e o mutex impede que cliente e servidor mexam nos
+          índices ao mesmo tempo."</p>
+      </div>
+
+      <div class="momento">
+        <div class="onde">2 · servidor.c — dentro de main()</div>
+        <pre>fd = <span class="k">shm_open</span>(SHM_NOME, O_CREAT | O_RDWR, 0666);
+<span class="k">ftruncate</span>(fd, <span class="k">sizeof</span>(Buffer));
+buffer = <span class="k">mmap</span>(NULL, <span class="k">sizeof</span>(Buffer), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+sem_vazias = <span class="k">sem_open</span>(SEM_VAZIAS, O_CREAT, 0666, MAX_REQUISICOES);
+sem_cheias = <span class="k">sem_open</span>(SEM_CHEIAS, O_CREAT, 0666, 0);
+sem_mutex  = <span class="k">sem_open</span>(SEM_MUTEX,  O_CREAT, 0666, 1);
+
+<span class="k">for</span> (i = 0; i &lt; NUM_THREADS; i++)
+    <span class="k">pthread_create</span>(&amp;threads[i], NULL, trabalhador, &amp;numeros[i]);</pre>
+        <p class="fala">"É o servidor montando tudo. O shm_open cria a região, o ftruncate dá o
+          tamanho dela e o mmap coloca essa região dentro do espaço de endereçamento do processo. Os
+          semáforos começam com valores diferentes de propósito: vazias com o número de slots,
+          cheias com zero porque ainda não chegou nada, e o mutex com um porque está livre."</p>
+      </div>
+
+      <div class="momento">
+        <div class="onde">3 · servidor.c — função trabalhador()</div>
+        <pre><span class="k">while</span> (1) {
+    <span class="k">sem_wait</span>(sem_cheias);    <span class="c">/* espera existir requisicao */</span>
+    <span class="k">sem_wait</span>(sem_mutex);
+    req = buffer-&gt;requisicoes[buffer-&gt;inicio];
+    buffer-&gt;inicio = (buffer-&gt;inicio + 1) % MAX_REQUISICOES;
+    <span class="k">sem_post</span>(sem_mutex);
+    <span class="k">sem_post</span>(sem_vazias);
+
+    <span class="k">if</span> (req.op == FIM) <span class="k">break</span>;
+
+    <span class="k">pthread_mutex_lock</span>(&amp;mutex_tabela);   <span class="c">/* ---- SECAO CRITICA ---- */</span>
+    <span class="k">switch</span> (req.op) { ... }
+    <span class="k">pthread_mutex_unlock</span>(&amp;mutex_tabela);
+
+    escrever_log(meu_numero, resultado);
+}</pre>
+        <p class="fala">"Este é o laço que as quatro threads rodam ao mesmo tempo. Tem dois momentos
+          de sincronização diferentes: em cima, os semáforos coordenam dois processos; embaixo, o
+          mutex coordena as threads dentro do mesmo processo. E repare que a retirada do buffer
+          acontece fora do mutex da tabela — assim uma thread pode estar pegando a próxima
+          requisição enquanto outra está trabalhando na tabela."</p>
+      </div>
+
+      <div class="momento">
+        <div class="onde">4 · servidor.c — função op_insert()</div>
+        <pre><span class="k">if</span> (procurar_posicao(id) != -1) { <span class="c">/* id ja existe */</span> }
+
+tabela[total_registros].id = id;
+strncpy(tabela[total_registros].nome, nome, 49);
+total_registros++;</pre>
+        <p class="fala">"É aqui que dá para mostrar por que o mutex é necessário. São três passos:
+          escreve na posição que o contador indica e depois soma um no contador. Se duas threads
+          fizessem isso ao mesmo tempo, as duas leriam o mesmo valor do contador, as duas
+          escreveriam na mesma posição, e um dos dois registros desapareceria."</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">DEMONSTRAÇÃO</p>
+    <h2>Dois terminais, quatro coisas para mostrar</h2>
+    <p>Prepare tudo antes: repositório clonado, <code>make</code> já rodado, terminais abertos lado a
+      lado. No VS Code, <code>Ctrl+Shift+5</code> divide o painel.</p>
+
+<pre><span class="c"># antes de começar, mostre o estado inicial do banco</span>
+cat banco.txt
+
+<span class="c"># terminal 1</span>
+./servidor
+
+<span class="c"># terminal 2</span>
+./cliente
+
+<span class="c"># depois, o que mudou</span>
+cat banco.txt
+cat log.txt</pre>
+
+    <p>As quatro coisas que a demonstração precisa deixar visíveis:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Mostre</th><th>Falando</th></tr></thead>
+        <tbody>
+          <tr><td>As linhas aparecendo <strong>uma a uma</strong>, com números de thread diferentes</td>
+              <td class="diz">"Cada linha é uma thread saindo da seção crítica. Elas aparecem em sequência porque só entra uma por vez — mas repare que os números mudam: não é sempre a mesma thread."</td></tr>
+          <tr><td>O <code>banco.txt</code> antes e depois</td>
+              <td class="diz">"O registro 2 sumiu, o 7 entrou e foi alterado, o 10 é novo. E a inserção do id 1 foi recusada porque ele já existia."</td></tr>
+          <tr><td>O <code>log.txt</code></td>
+              <td class="diz">"É o canal de resposta. O enunciado deixava escolher entre um segundo canal de IPC ou arquivo de log — escolhemos o log."</td></tr>
+          <tr><td>Rodar <code>./cliente</code> com o servidor desligado</td>
+              <td class="diz">"Ele avisa que não achou a memória compartilhada. Quem cria a região é o servidor; o cliente só abre pelo nome."</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="aviso">Se der algum problema no meio da demonstração, rode <code>make limpar</code> e
+      <code>make</code> de novo. Se o servidor tiver sido morto à força numa execução anterior, pode
+      ter sobrado memória compartilhada antiga — o próprio servidor apaga antes de criar, então basta
+      subir de novo.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">PERGUNTAS</p>
+    <h2>O que provavelmente vão perguntar</h2>
+
+    <div class="perguntas">
+      <div class="qa">
+        <p class="q">Por que memória compartilhada e não pipe?</p>
+        <p class="a">Porque é a forma mais rápida de IPC: os dados não passam pelo núcleo do sistema a
+          cada troca, os dois processos escrevem e leem direto na mesma região de memória física. Em
+          troca, ela não traz sincronização nenhuma pronta — quem tem que coordenar é o programador,
+          e é para isso que estão os três semáforos. Com pipe, o sistema já entrega os dados em ordem,
+          mas cada mensagem passa por uma cópia a mais.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Por que três semáforos? Um não bastaria?</p>
+        <p class="a">Cada um resolve um problema diferente. <em>Vazias</em> e <em>cheias</em> contam
+          espaço e trabalho: fazem o cliente dormir quando o buffer enche e as threads dormirem quando
+          ele esvazia, sem ninguém ficar verificando o buffer em laço e gastando processador. O
+          <em>mutex</em> é exclusão mútua sobre os índices <code>inicio</code> e <code>fim</code>. Com
+          um semáforo só, ou faltaria a espera bloqueante, ou faltaria a proteção dos índices.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Qual a diferença entre o semáforo e o mutex, se os dois protegem?</p>
+        <p class="a">O semáforo nomeado funciona entre <strong>processos</strong> diferentes — é por
+          isso que ele protege o buffer, que é compartilhado entre cliente e servidor. O mutex do
+          pthread funciona entre <strong>threads</strong> do mesmo processo — é por isso que ele
+          protege a tabela, que só existe dentro do servidor. Os dois fazem exclusão mútua; o que muda
+          é o alcance.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Por que o tempo não diminui com mais threads?</p>
+        <p class="a">Porque todo o processamento de uma requisição está dentro da seção crítica, e o
+          mutex deixa uma thread por vez. O tempo total vira a soma dos tempos individuais, não
+          importa quantas threads existam. As threads funcionam — no log dá para ver as quatro
+          recebendo requisições —, mas a disputa termina na porta da seção crítica.</p>
+        <p class="a">Para haver ganho, parte do trabalho teria que acontecer fora do mutex. É o que
+          está proposto como continuidade no relatório.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">As requisições são atendidas na ordem em que foram enviadas?</p>
+        <p class="a">Não, e isso é consequência direta do paralelismo que o enunciado pede. As quatro
+          threads retiram requisições do buffer ao mesmo tempo e o escalonador decide qual avança
+          primeiro. Dá para provar isso rodando com uma thread e com quatro: com uma, a ordem é
+          exatamente a do envio; com quatro, ela muda. Está no Quadro 4 do relatório.</p>
+        <p class="a">O que o mutex garante não é ordem, é consistência: a tabela nunca é alterada por
+          duas threads ao mesmo tempo, então nunca fica em estado inválido.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">O que aconteceria sem o mutex?</p>
+        <p class="a">Condição de corrida. No <code>op_insert</code>, duas threads leriam o contador de
+          registros com o mesmo valor, escreveriam na mesma posição do vetor e um dos registros se
+          perderia. No <code>op_delete</code>, que desloca os elementos seguintes para trás, o estrago
+          seria pior: a tabela ficaria embaralhada.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">O que é esse <code>usleep</code> dentro da seção crítica?</p>
+        <p class="a">Não faz parte do algoritmo. Ele foi colocado de propósito para cada operação
+          demorar trezentos milissegundos, senão o sistema atende as oito requisições em poucos
+          milissegundos e não dá para acompanhar nada na tela. É também o que explica os tempos do
+          Quadro 5 — oito requisições vezes trezentos milissegundos dá os 2,41 segundos medidos.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Como o servidor sabe que pode encerrar?</p>
+        <p class="a">O cliente envia, no fim, uma requisição especial <code>FIM</code> para cada
+          thread. A thread que recebe uma delas sai do laço e termina. Quando todas terminam, o
+          <code>pthread_join</code> do <code>main</code> libera, o banco é salvo em arquivo e a memória
+          compartilhada e os semáforos são apagados do sistema.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Por que o <code>banco.h</code> em vez de copiar as structs nos dois arquivos?</p>
+        <p class="a">Porque cliente e servidor são compilados separadamente, mas leem e escrevem a
+          mesma região de memória. Se as definições ficassem duplicadas e alguém mudasse uma delas, um
+          programa passaria a interpretar os mesmos bytes de forma diferente do outro — e o erro seria
+          silencioso, sem aviso do compilador.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Por que o buffer é circular?</p>
+        <p class="a">Para reaproveitar as posições sem precisar deslocar nada. Quando o índice chega
+          ao fim do vetor, o resto da divisão o leva de volta ao começo. O controle de quanto está
+          cheio ou vazio não vem dos índices, e sim dos semáforos <em>vazias</em> e <em>cheias</em>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">DIVISÃO</p>
+    <h2>Quem fala o quê</h2>
+    <p>O professor pode escolher um só para apresentar em nome do grupo — então todos precisam
+      conseguir explicar tudo. Esta divisão é para o caso de apresentarem juntos.</p>
+    <div class="split">
+      <div class="card">
+        <h3>Pessoa 1 — contexto</h3>
+        <ul>
+          <li>As três frases de abertura</li>
+          <li>A Figura 1, de cima para baixo</li>
+          <li>Os cinco arquivos</li>
+          <li>Por que existe o <code>banco.h</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Pessoa 2 — IPC</h3>
+        <ul>
+          <li>Momentos 1 e 2 do código</li>
+          <li>Os três semáforos e o papel de cada um</li>
+          <li><code>shm_open</code>, <code>ftruncate</code>, <code>mmap</code></li>
+          <li>O buffer circular</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Pessoa 3 — threads</h3>
+        <ul>
+          <li>Momentos 3 e 4 do código</li>
+          <li>O pool e o <code>pthread_join</code></li>
+          <li>A seção crítica e a corrida</li>
+          <li>O Quadro 5 e o fechamento</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">ANTES DE ENTRAR</p>
+    <h2>Conferir na véspera</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Por quê</th></tr></thead>
+        <tbody>
+          <tr><td>Repositório público no GitHub</td><td class="diz">O enunciado exige, e o professor não se responsabiliza se estiver fechado na hora da correção.</td></tr>
+          <tr><td>Baixar o projeto do repositório e compilar do zero</td><td class="diz">O enunciado diz que a solução será baixada do local de entrega na hora da apresentação. Teste esse caminho, não a pasta que já está na sua máquina.</td></tr>
+          <tr><td>Nomes preenchidos na capa do relatório</td><td class="diz">Os marcadores entre colchetes ainda estão lá.</td></tr>
+          <tr><td>Relatório em PDF entregue</td><td class="diz">Com o link do repositório dentro.</td></tr>
+          <tr><td>Rodar a demonstração uma vez inteira</td><td class="diz">Inclusive o <code>cat banco.txt</code> antes e depois, para saber de cor o que vai aparecer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>

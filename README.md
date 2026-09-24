@@ -6,7 +6,11 @@ Dois programas separados: o **cliente** envia requisições por **memória compa
 **servidor** as executa com **4 threads** sobre uma tabela protegida por **mutex**. O resultado de
 cada requisição vai para um arquivo de log.
 
-Documento com o fluxo ilustrado: [`docs/arquitetura.html`](docs/arquitetura.html)
+| Documento | Conteúdo |
+| --- | --- |
+| [`docs/arquitetura.html`](docs/arquitetura.html) | Fluxo ilustrado, estrutura e conceitos |
+| [`docs/apresentacao.html`](docs/apresentacao.html) | Roteiro da apresentação: o que dizer, função por função, perguntas prováveis |
+| [`docs/relatorio/`](docs/relatorio/) | Relatório em ABNT (.docx e .pdf) |
 
 ## Arquivos
 
