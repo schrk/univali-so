@@ -519,6 +519,70 @@ cat log.txt</pre>
       </div>
 
       <div class="qa">
+        <p class="q">Por que o SELECT também fica dentro da seção crítica, se ele só lê?</p>
+        <p class="a">Porque um <code>SELECT</code> rodando junto de um <code>DELETE</code> leria o
+          vetor no meio do deslocamento: o <code>op_delete</code> puxa todos os registros seguintes
+          uma posição para trás, e uma leitura nesse intervalo pegaria uma posição inválida ou
+          pularia um registro. Como o mutex é único, toda operação é serializada, inclusive leitura.</p>
+        <p class="a">Assumimos esse custo: as consultas rodam uma por uma e isso é gargalo — é o que
+          os tempos do Quadro 5 mostram. A saída seria um lock de leitores-escritores, que deixa
+          várias leituras simultâneas e só torna exclusiva a escrita. Está proposto como continuidade
+          no relatório.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Como trataram a sincronização de escrita e leitura no canal de IPC?</p>
+        <p class="a">A memória compartilhada não traz sincronização nenhuma pronta — ela só entrega a
+          mesma região de memória aos dois processos. Toda a coordenação é explícita, com três
+          semáforos nomeados no padrão produtor-consumidor: <code>vazias</code> começa em 10 e segura
+          o cliente quando o buffer enche; <code>cheias</code> começa em zero e segura as threads
+          quando ele esvazia; <code>mutex</code> começa em um e protege os índices
+          <code>inicio</code> e <code>fim</code>, que os dois processos alteram.</p>
+        <p class="a">São nomeados, e não anônimos, porque cliente e servidor não têm parentesco entre
+          si: só conseguem chegar ao mesmo semáforo abrindo-o pelo nome com <code>sem_open</code>.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Como o pool trata o fim das requisições? Usaram join ou detach?</p>
+        <p class="a">O cliente envia, no final, uma requisição <code>FIM</code> para cada thread. A
+          thread que recebe a sua sai do laço e retorna.</p>
+        <p class="a">Usamos <code>pthread_join</code>, não <code>pthread_detach</code>, porque o
+          <code>main</code> precisa esperar todas terminarem antes de gravar o
+          <code>banco.txt</code> — com <code>detach</code> não haveria como esperar, e o arquivo
+          poderia ser salvo com uma thread ainda alterando a tabela.</p>
+        <p class="a">Não usamos variável de condição. A espera por trabalho é feita pelo
+          <code>sem_wait</code> no semáforo <code>cheias</code>, que já bloqueia a thread. Uma
+          <code>pthread_cond_t</code> só funciona entre threads do mesmo processo; como as
+          requisições vêm de outro processo, o semáforo nomeado é o mecanismo que serve aqui.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Se as inserções aumentarem muito, como a memória do banco cresce?</p>
+        <p class="a">Hoje ela não cresce. A tabela é <code>static Registro tabela[100]</code>, um
+          vetor de tamanho fixo. Quando enche, o <code>op_insert</code> devolve
+          <code>ERRO: tabela cheia</code> — o sistema não quebra e nenhuma thread cai, mas também não
+          escala. Foi uma escolha de simplicidade para esta entrega.</p>
+        <p class="a">Para crescer, seria trocar o vetor por um ponteiro com <code>malloc</code> e
+          <code>realloc</code>, dobrando a capacidade quando lotasse (100 → 200 → 400), o que amortiza
+          o custo das cópias. Dois cuidados: o <code>realloc</code> teria que acontecer dentro do
+          mutex, porque ele pode mover o bloco para outro endereço e invalidar qualquer ponteiro que
+          outra thread esteja segurando; e é por isso que as funções já trabalham com o índice
+          devolvido por <code>procurar_posicao</code> em vez de guardar ponteiro para
+          <code>Registro</code> — o desenho atual já facilitaria essa mudança.</p>
+      </div>
+
+      <div class="qa">
+        <p class="q">Por que memória compartilhada e não pipe, do ponto de vista de desempenho?</p>
+        <p class="a">Taxa de transferência. No pipe, cada mensagem é copiada duas vezes: do processo
+          para um buffer do núcleo e do núcleo para o outro processo. Na memória compartilhada, depois
+          do <code>mmap</code>, os dois processos escrevem na mesma página física — não há cópia
+          nenhuma. É o IPC mais rápido disponível.</p>
+        <p class="a">O preço é que o pipe já entrega os dados em ordem e com controle de fluxo pronto,
+          enquanto a memória compartilhada não coordena nada — quem faz isso é o programador, e foi o
+          trabalho dos três semáforos.</p>
+      </div>
+
+      <div class="qa">
         <p class="q">Por que o buffer é circular?</p>
         <p class="a">Para reaproveitar as posições sem precisar deslocar nada. Quando o índice chega
           ao fim do vetor, o resto da divisão o leva de volta ao começo. O controle de quanto está
