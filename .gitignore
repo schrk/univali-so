@@ -1,7 +1,7 @@
 # executáveis e arquivos gerados
-servidor
-cliente
-log.txt
+m1/servidor
+m1/cliente
+m1/log.txt
 
 # M2
 m2/simulador
