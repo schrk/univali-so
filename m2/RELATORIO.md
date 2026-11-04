@@ -1,13 +1,13 @@
 # Relatório M2 — Escalonamento multiprocessado com paginação sob demanda
 
 Todos os números vêm de `resultados/tabelas.md` e `resultados/execucoes.csv`, gerados por
-`python3 experimentos.py`. Uma execução é identificada como **cenário-CPUs-escalonador**; por exemplo,
+`make && python3 experimentos.py`. Uma execução é identificada como **cenário-CPUs-escalonador**; por exemplo,
 `B-4-RR10` é o cenário B com 4 CPUs e RR de quantum 10. Quando nada for dito, a memória é LRU com 256
 quadros, troca = 1 e fault = 20.
 
 ## 1. Validação do simulador
 
-`python3 testes.py` roda os exemplos do enunciado e compara com os valores esperados. Os 23 testes
+`make teste` roda os exemplos do enunciado no `./simulador` (em C) e compara com os valores esperados. Os 23 testes
 passam:
 
 | Exemplo | Conferido |
@@ -21,6 +21,23 @@ passam:
 
 O `--log` mostra, instante a instante, a fila de prontos, os bloqueados e os quadros. Ele serve para
 provar cada regra na defesa. O log do exemplo 7.2 reproduz a tabela do enunciado linha por linha.
+
+### Implementação e estruturas de dados
+
+O simulador é em C (`simulador.c`) e lê o JSON com a biblioteca cJSON. O tempo avança em unidades
+inteiras, e cada instante segue a ordem da seção 6.2: fim das unidades, chegadas e retornos em ordem
+de pid, preempção por quantum e despachos.
+
+- **Memória:** os quadros ficam numa lista duplamente ligada na ordem de substituição, e cada
+  processo tem uma tabela `quadro[pag]`. O acerto é O(1). A vítima é o primeiro quadro não protegido
+  a partir da cabeça da lista. No FIFO a ordem é a de carga; no LRU todo acerto move o quadro para o
+  fim. Assim as duas políticas usam a mesma estrutura e diferem só em uma linha.
+- **Fila de prontos:** vetor circular no FCFS e no RR, heap por `(restante do burst, ordem de
+  entrada)` no SJF.
+- **Bloqueados:** heap por instante de retorno, sem fila de disco.
+
+Com essas estruturas cada execução do cenário completo leva menos de 1 s, e as 52 execuções levam
+cerca de 25 s.
 
 ## 2. Desenho experimental
 

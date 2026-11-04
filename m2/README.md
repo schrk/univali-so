@@ -1,14 +1,17 @@
 # M2 — Simulador de escalonamento multiprocessado com paginação sob demanda
 
-Escalonadores FCFS, SJF (não preemptivo) e RR. Simula 1 ou 4 CPUs com uma fila de prontos
-global e memória física paginada com substituição FIFO ou LRU. Feito em Python 3 e sem dependências
-para o simulador. Roda direto no Linux / GitHub Codespaces.
+Escalonadores FCFS, SJF (não preemptivo) e RR. Simula 1 ou 4 CPUs com uma fila de prontos global e
+memória física paginada com substituição FIFO ou LRU. O simulador é em **C**, e o JSON é lido com a
+biblioteca [cJSON](https://github.com/DaveGamble/cJSON) (MIT), que fica em `lib/`. Para compilar basta
+o `gcc`, sem instalar nada. Os gráficos são gerados em Python.
 
 | Arquivo | O que é |
 | --- | --- |
-| `simulador.py` | o simulador (argumentos, menu, modo ao vivo, resumo, Gantt, log) |
-| `testes.py` | confere o simulador contra os exemplos 5.4, 5.5, 7.1, 7.2 e 7.3 do enunciado |
-| `experimentos.py` | roda as 52 execuções da seção 11 e gera tabelas, gráficos e Gantt |
+| `simulador.c` | o simulador (argumentos, menu, modo ao vivo, resumo, Gantt, log) |
+| `lib/cJSON.c`, `lib/cJSON.h` | biblioteca externa de JSON (v1.7.18), licença em `lib/cJSON_LICENSE` |
+| `Makefile` | `make` compila; `make teste` roda os testes |
+| `testes.py` | confere o `./simulador` contra os exemplos 5.4, 5.5, 7.1, 7.2 e 7.3 do enunciado |
+| `experimentos.py` | roda o `./simulador` nas 52 execuções da seção 11 e gera tabelas, gráficos e Gantt |
 | `cenarios/` | `cenario_A_t0.json` e `cenario_B_espacadas.json` (carga do grupo) |
 | `exemplos/` | os exemplos pequenos do enunciado em JSON |
 | `resultados/` | saída do `experimentos.py`: `tabelas.md`, `execucoes.csv`, gráficos `g*.png`, `gantt/` |
@@ -18,11 +21,12 @@ para o simulador. Roda direto no Linux / GitHub Codespaces.
 
 ```bash
 cd m2
-python3 testes.py                      # valida contra os exemplos do enunciado
+make                                   # compila ./simulador
+make teste                             # valida contra os exemplos do enunciado
 ```
 
 ```bash
-python3 simulador.py --arquivo cenarios/cenario_B_espacadas.json --cpus 4 --sched rr --quantum 10 --subst lru --quadros 256
+./simulador --arquivo cenarios/cenario_B_espacadas.json --cpus 4 --sched rr --quantum 10 --subst lru --quadros 256
 ```
 
 Todos os parâmetros vêm da linha de comando, sem precisar editar nem recompilar nada:
@@ -48,6 +52,8 @@ faults) e grava em `saida/`:
 
 - `<execucao>_resumo.txt`: o mesmo resumo;
 - `<execucao>_gantt.csv`: Gantt de 0 a 200, no formato `cpu,inicio,fim,evento`;
+- `<execucao>_processos.csv`: espera, resposta e turnaround de cada processo;
+- `<execucao>_metricas.txt`: as métricas em `chave=valor`, que o `experimentos.py` lê;
 - `<execucao>_log.txt`: com `--log`, a cada instante em que algo muda grava os eventos, a fila de
   prontos em ordem, os bloqueados com o instante de retorno, o que está em cada CPU e os quadros
   ocupados. O log da simulação inteira passa de 200 MB, por isso o padrão vai até t=2000.
@@ -55,7 +61,7 @@ faults) e grava em `saida/`:
 ### Execução em tempo real
 
 ```bash
-python3 simulador.py --arquivo cenarios/cenario_B_espacadas.json --cpus 4 --sched rr --quantum 10 --ao-vivo
+./simulador --arquivo cenarios/cenario_B_espacadas.json --cpus 4 --sched rr --quantum 10 --ao-vivo
 ```
 
 A tela é redesenhada a cada unidade de tempo e mostra o estado de cada CPU (pid, TROCA ou OCIOSA), a
@@ -65,27 +71,27 @@ velocidade máxima até o fim e o resumo é impresso.
 
 ### Menu interativo
 
-Sem argumentos (`python3 simulador.py`), o programa pergunta cenário, CPUs, escalonador, quantum,
+Sem argumentos (`./simulador`), o programa pergunta cenário, CPUs, escalonador, quantum,
 substituição, quadros, custos, log e modo ao vivo. Cada pergunta já vem com o valor padrão.
 
 ### Experimentos e gráficos
 
 ```bash
 pip install matplotlib
-python3 experimentos.py                # ~1 min com 4 núcleos
+make && python3 experimentos.py        # ~25 s
 ```
 
 ## Estruturas de dados
 
 | Parte | Estrutura | Por quê |
 | --- | --- | --- |
-| Fila de prontos FCFS/RR | `deque` | entra no fim e sai do início em O(1) |
-| Fila de prontos SJF | heap `(restante do burst, ordem de entrada)` | menor burst em O(log n); empate = quem entrou primeiro |
-| Bloqueados (E/S e fault) | heap por instante de retorno | não formam fila: cada um tem seu tempo; no instante t só se retiram os que vencem em t |
-| Quadros | `OrderedDict (pid, página) → protegida` | a ordem do dicionário é a ordem de substituição. No FIFO não muda; no LRU todo acerto faz `move_to_end`. A vítima é o primeiro item não protegido. Busca, carga e remoção em O(1) |
-| Páginas por processo | `dict pid → set` | libera os quadros no término sem varrer a memória |
+| Fila de prontos FCFS/RR | vetor circular | entra no fim e sai do início em O(1); cada processo está na fila no máximo uma vez, então cabe em N posições |
+| Fila de prontos SJF | heap binário por `(restante do burst, ordem de entrada)` | menor burst em O(log n); empate = quem entrou primeiro |
+| Bloqueados (E/S e fault) | heap binário por `(instante de retorno, pid)` | não formam fila: cada um tem seu tempo; no instante t só se retiram os que vencem em t |
+| Quadros | vetor de quadros ligados numa lista dupla, na ordem de substituição | a cabeça é a próxima vítima. No FIFO a página entra no fim e o acerto não mexe; no LRU todo acerto move a página para o fim. A vítima é o primeiro quadro não protegido a partir da cabeça. Carga, remoção e "mover para o fim" são O(1) |
+| Tabela de páginas | `quadro[pag]` em cada processo (−1 = fora da memória) | acerto ou fault em O(1); no término percorre só as páginas do processo para liberar os quadros |
 
-O tempo avança de 1 em 1 unidade. Cada execução do cenário completo leva de 0,1 a 10 s.
+O tempo avança de 1 em 1 unidade. Cada execução do cenário completo leva menos de 1 s.
 
 ## Ordem de eventos em cada instante t
 

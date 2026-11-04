@@ -4,5 +4,6 @@ cliente
 log.txt
 
 # M2
+m2/simulador
 m2/saida/
 __pycache__/

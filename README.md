@@ -2,7 +2,7 @@
 
 | Avaliação | Conteúdo |
 | --- | --- |
-| **M2** — [`m2/`](m2/) | Simulador de escalonamento (FCFS, SJF, RR) com 1/4 CPUs e paginação sob demanda (FIFO/LRU). Ver [`m2/README.md`](m2/README.md) e [`m2/RELATORIO.md`](m2/RELATORIO.md) |
+| **M2** — [`m2/`](m2/) | Simulador de escalonamento (FCFS, SJF, RR) com 1/4 CPUs e paginação sob demanda (FIFO/LRU), em C. Ver [`m2/README.md`](m2/README.md) e [`m2/RELATORIO.md`](m2/RELATORIO.md) |
 | **M1** — esta pasta | Banco de dados com IPC e threads (abaixo) |
 
 ---

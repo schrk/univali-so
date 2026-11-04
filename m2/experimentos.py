@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Roda todas as execuções da seção 11 e gera tabelas, gráficos e Gantt em resultados/.
+"""Roda o ./simulador (C) em todas as execuções da seção 11 e gera tabelas, gráficos e Gantt em resultados/.
 
     pip install matplotlib
-    python3 experimentos.py
+    make && python3 experimentos.py
 
 Execuções:
   base         2 cenários x {1, 4} CPUs x {FCFS, SJF, RR q=2,5,10,20,50}, LRU, 256 quadros = 28
@@ -10,62 +10,71 @@ Execuções:
   quadros      RR q=10 com 4 CPUs, LRU e FIFO, 64..1024 quadros (opcional do enunciado)
 """
 import csv
-import json
+import glob
 import os
+import subprocess
+import sys
+import tempfile
 from multiprocessing import Pool
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from simulador import simular, metricas, gantt_csv
-
 AQUI = os.path.dirname(os.path.abspath(__file__))
+BIN = os.path.join(AQUI, "simulador")
 CEN = {"A": "cenarios/cenario_A_t0.json", "B": "cenarios/cenario_B_espacadas.json"}
 OUT = os.path.join(AQUI, "resultados")
 QUANTUMS = [2, 5, 10, 20, 50]
 VARIACOES = [("fcfs", 0), ("sjf", 0)] + [("rr", q) for q in QUANTUMS]
-_cache = {}
 
 
 def rotulo(sched, q):
     return "RR q=%d" % q if sched == "rr" else sched.upper()
 
 
+def numero(v):
+    if "," in v:
+        return tuple(int(x) for x in v.split(","))
+    return float(v) if "." in v else int(v)
+
+
 def executa(cfg):
+    """Roda ./simulador com a configuração e lê as métricas e o Gantt que ele grava."""
     cen, cpus, sched, q, subst, quadros = cfg
-    if cen not in _cache:
-        with open(os.path.join(AQUI, CEN[cen])) as f:
-            _cache[cen] = json.load(f)
-    r = simular(_cache[cen], cpus=cpus, sched=sched, quantum=q or 10, subst=subst, quadros=quadros)
-    m = metricas(r)
+    with tempfile.TemporaryDirectory() as d:
+        subprocess.run([BIN, "--arquivo", os.path.join(AQUI, CEN[cen]), "--cpus", str(cpus),
+                        "--sched", sched, "--quantum", str(q or 10), "--subst", subst,
+                        "--quadros", str(quadros), "--saida", d],
+                       check=True, stdout=subprocess.DEVNULL)
+        with open(glob.glob(os.path.join(d, "*_metricas.txt"))[0]) as f:
+            m = {k: numero(v) for k, v in (l.strip().split("=", 1) for l in f)}
+        with open(glob.glob(os.path.join(d, "*_gantt.csv"))[0]) as f:
+            gantt = f.read()
     m.update(cenario=cen, cpus=cpus, sched=sched, quantum=q, subst=subst, quadros=quadros,
              config=rotulo(sched, q))
-    for c in r["cpu"]:
-        m["cpu%d" % c.i] = (c.util, c.troca, c.ocioso, c.n_trocas)
-    return cfg, m, r["gantt"]
+    return cfg, m, gantt
 
 
-def desenha_gantt(gantt, titulo, arq):
+def desenha_gantt(gantt, ncpu, titulo, arq):
     cores = plt.get_cmap("tab20")
-    fig, ax = plt.subplots(figsize=(18, 1.2 + 0.9 * len(gantt)))
-    for i, faixa in enumerate(gantt):
-        y = len(gantt) - 1 - i
-        for linha in gantt_csv([faixa]).splitlines()[1:]:
-            _, ini, fim, ev = linha.split(",")
-            ini, fim = int(ini), int(fim)
-            if ev == "OCIOSA":
-                cor, txt = "white", ""
-            elif ev == "TROCA":
-                cor, txt = "#444444", ""
-            else:
-                cor, txt = cores(int(ev[1:]) % 20), ev[1:]
-            ax.barh(y, fim - ini, left=ini, height=0.8, color=cor, edgecolor="black", linewidth=0.4,
-                    hatch="//" if ev == "OCIOSA" else None)
-            if txt and fim - ini >= 2:
-                ax.text((ini + fim) / 2, y, txt, ha="center", va="center", fontsize=7)
-    ax.set_yticks(range(len(gantt)))
-    ax.set_yticklabels(["CPU %d" % i for i in reversed(range(len(gantt)))])
+    fig, ax = plt.subplots(figsize=(18, 1.2 + 0.9 * ncpu))
+    for linha in gantt.splitlines()[1:]:
+        i, ini, fim, ev = linha.split(",")
+        i, ini, fim = int(i), int(ini), int(fim)
+        y = ncpu - 1 - i
+        if ev == "OCIOSA":
+            cor, txt = "white", ""
+        elif ev == "TROCA":
+            cor, txt = "#444444", ""
+        else:
+            cor, txt = cores(int(ev[1:]) % 20), ev[1:]
+        ax.barh(y, fim - ini, left=ini, height=0.8, color=cor, edgecolor="black", linewidth=0.4,
+                hatch="//" if ev == "OCIOSA" else None)
+        if txt and fim - ini >= 2:
+            ax.text((ini + fim) / 2, y, txt, ha="center", va="center", fontsize=7)
+    ax.set_yticks(range(ncpu))
+    ax.set_yticklabels(["CPU %d" % i for i in reversed(range(ncpu))])
     ax.set_xlim(0, 200)
     ax.set_xticks(range(0, 201, 10))
     ax.set_xlabel("tempo (numero = pid; cinza escuro = TROCA; hachurado = OCIOSA)")
@@ -92,6 +101,8 @@ def tabela_md(linhas, colunas):
 
 
 def main():
+    if not os.path.exists(BIN):
+        sys.exit("compile antes: make")
     os.makedirs(os.path.join(OUT, "gantt"), exist_ok=True)
     base = [(c, n, s, q, "lru", 256) for c in "AB" for n in (1, 4) for s, q in VARIACOES]
     fifo = [(c, n, s, q, "fifo", 256) for c in "AB" for n in (1, 4) for s, q in (("fcfs", 0), ("rr", 10))]
@@ -116,8 +127,8 @@ def main():
         c, n, s, q, sub, f = cfg
         nome = "%s_cpus%d_%s" % (c, n, rotulo(s, q).replace(" ", "").replace("=", ""))
         with open(os.path.join(OUT, "gantt", nome + ".csv"), "w") as fp:
-            fp.write(gantt_csv(res[cfg][1]))
-        desenha_gantt(res[cfg][1], "Cenario %s - %d CPU(s) - %s - LRU 256" % (c, n, rotulo(s, q)),
+            fp.write(res[cfg][1])
+        desenha_gantt(res[cfg][1], n, "Cenario %s - %d CPU(s) - %s - LRU 256" % (c, n, rotulo(s, q)),
                       os.path.join(OUT, "gantt", nome + ".png"))
 
     # ---- tabelas ------------------------------------------------------------------------
