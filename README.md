@@ -1,6 +1,13 @@
-# Banco de dados com IPC e threads
+# Sistemas Operacionais (Univali)
 
-Avaliação M1 — Sistemas Operacionais (Univali).
+| Avaliação | Conteúdo |
+| --- | --- |
+| **M2** — [`m2/`](m2/) | Simulador de escalonamento (FCFS, SJF, RR) com 1/4 CPUs e paginação sob demanda (FIFO/LRU). Ver [`m2/README.md`](m2/README.md) e [`m2/RELATORIO.md`](m2/RELATORIO.md) |
+| **M1** — esta pasta | Banco de dados com IPC e threads (abaixo) |
+
+---
+
+# M1 — Banco de dados com IPC e threads
 
 Dois programas separados: o **cliente** envia requisições por **memória compartilhada** e o
 **servidor** as executa com **4 threads** sobre uma tabela protegida por **mutex**. O resultado de
