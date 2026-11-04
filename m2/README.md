@@ -16,6 +16,7 @@ o `gcc`, sem instalar nada. Os gráficos são gerados em Python.
 | `exemplos/` | os exemplos pequenos do enunciado em JSON |
 | `resultados/` | saída do `experimentos.py`: `tabelas.md`, `execucoes.csv`, gráficos `g*.png`, `gantt/` |
 | [`RELATORIO.md`](RELATORIO.md) | desenho experimental, resultados e análise crítica |
+| [`docs/relatorio/`](docs/relatorio/) | relatório em ABNT (.docx e .pdf) |
 
 ## Como rodar (Codespaces ou qualquer Linux)
 
