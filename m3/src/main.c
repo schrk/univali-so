@@ -9,7 +9,7 @@
  * Uso:
  *   ./mfs         menu interativo
  *   ./mfs -t      direto no terminal (comandos estilo Linux)
- *   ./mfs -t < roteiro.txt   executa um roteiro (testes e demonstração)
+ *   ./mfs -t < roteiro.txt   executa um roteiro (ex.: demo.txt)
  */
 #include <stdio.h>
 #include <string.h>

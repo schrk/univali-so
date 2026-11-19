@@ -23,8 +23,8 @@ São 2 formas de uso, que executam exatamente o mesmo código:
 | `src/perm.c/.h` | usuários, grupos e **verificação RWX com bitmask**; `chmod` octal e simbólico |
 | `src/disco.c/.h` | **disco simulado** e **bitmap** de blocos livres |
 | `src/erros.c/.h` | `enum FsErro` e as mensagens de erro |
-| `testes/` | 7 roteiros com a saída esperada, `rodar.sh` e o roteiro da apresentação (`demo.txt`) |
-| `Makefile` | `make`, `make teste`, `make memcheck`, `make demo`, `make clean` |
+| `demo.txt` | roteiro da apresentação (um comando por linha) |
+| `Makefile` | `make`, `make demo`, `make memcheck`, `make clean` |
 
 ---
 
@@ -50,22 +50,16 @@ O comando acima abre o **menu numerado**.
 O comando acima abre direto o **terminal**, com comandos estilo Linux.
 
 ```bash
-make teste
+make demo
 ```
 
-Roda os 7 roteiros e compara cada saída com o gabarito.
+Roda o roteiro da apresentação (`demo.txt`).
 
 ```bash
 make memcheck
 ```
 
-Roda os mesmos roteiros no valgrind e exige 0 erros e 0 leaks.
-
-```bash
-make demo
-```
-
-Roda o roteiro da apresentação (`testes/demo.txt`).
+Roda o mesmo roteiro no valgrind e exige 0 erros e 0 leaks.
 
 O terminal também aceita um roteiro pela entrada padrão (`./mfs -t < roteiro.txt`). Nesse caso cada comando é repetido depois do prompt, para a saída ficar legível.
 
@@ -403,7 +397,7 @@ Mapa de bits (. livre  # dados  I índice):
   000 ##############I#................................................
 ```
 
-O teste `04_blocos` mostra também a vantagem da indexada sobre a contígua. Depois de apagar um arquivo, o disco fica com um buraco. Quando outro arquivo cresce, ele usa blocos espalhados, sem precisar de espaço contíguo:
+A indexada também mostra sua vantagem sobre a contígua. Depois de apagar um arquivo, o disco fica com um buraco. Quando outro arquivo cresce, ele usa blocos espalhados, sem precisar de espaço contíguo, e o `stat` mostra algo como:
 
 ```
   Diretos: [3 4 2 5 6 7 8 9]  Indireto: 1
@@ -431,8 +425,6 @@ Todos os erros são valores de `enum FsErro` (`erros.h`). O shell os mostra no f
 | aspas abertas, comando inexistente, linha longa | mensagens próprias, sem derrubar o programa |
 | programa que chama a si mesmo | `exec: ./loop: limite de 8 programas aninhados atingido` |
 
-O roteiro `testes/05_erros.txt` exercita todas essas situações.
-
 ## 5. Gerenciamento de memória
 
 - **Cada alocação tem um único responsável por liberá-la:**
@@ -444,34 +436,13 @@ O roteiro `testes/05_erros.txt` exercita todas essas situações.
 - **Entrada limitada em tamanho:** `fgets` com tamanho, nomes de no máximo 32 caracteres e caminhos de no máximo 255.
 - O `Makefile` compila com `-std=c11 -Wall -Wextra -Wpedantic`, sem nenhum warning.
 
-Resultado de `make memcheck`, com os 7 roteiros rodando no valgrind (`--leak-check=full --errors-for-leak-kinds=all`):
+Resultado de `make memcheck`, que roda o roteiro da apresentação no valgrind (`--leak-check=full --errors-for-leak-kinds=all`):
 
 ```
-ok      01_arvore (valgrind: 0 erros, 0 leaks)
-ok      02_arquivos (valgrind: 0 erros, 0 leaks)
-ok      03_permissoes (valgrind: 0 erros, 0 leaks)
-ok      04_blocos (valgrind: 0 erros, 0 leaks)
-ok      05_erros (valgrind: 0 erros, 0 leaks)
-ok      06_links (valgrind: 0 erros, 0 leaks)
-ok      07_menu (valgrind: 0 erros, 0 leaks)
-7 ok, 0 falha(s)
+valgrind: 0 erros, 0 leaks
 ```
 
-## 6. Testes
-
-| Roteiro | Cobre |
-| --- | --- |
-| `01_arvore` | mkdir/-p, cd com caminhos absolutos e relativos, `..`, pwd, tree, rmdir |
-| `02_arquivos` | touch, echo >/>>, cat, read (reposicionar), truncate, tipos no stat, cp, mv, rm -r |
-| `03_permissoes` | dono/grupo/outros, chmod octal e simbólico, diretório sem r/x, rm dependendo do diretório, exec, root, chown, umask |
-| `04_blocos` | 1 bloco, vários blocos, bloco indireto, liberação no truncate/rm, limite do inode |
-| `05_erros` | todos os erros da seção 4 |
-| `06_links` | hard links, `n_links`, dados mantidos até o último `rm` |
-| `07_menu` | o menu numerado de ponta a ponta, inclusive o terminal dentro dele |
-
-Os testes rodam com `MFS_DATA_FIXA=1`, que fixa o relógio para as datas saírem iguais e a saída poder ser comparada com o gabarito.
-
-## 7. Comparação com o Linux real
+## 6. Comparação com o Linux real
 
 Os mesmos cenários foram rodados no bash de um Linux (Ubuntu), com uids 1000/1001/1002 e grupos 100/200 como no simulador. A tabela compara as saídas lado a lado:
 
@@ -498,7 +469,7 @@ Os mesmos cenários foram rodados no bash de um Linux (Ubuntu), com uids 1000/10
 - O `exec` "interpreta" o programa: cada linha é um comando do próprio simulador, rodado com as permissões de quem o executou. Não executa código de verdade.
 - O `cat` acrescenta uma quebra de linha se o arquivo não terminar com uma, para o prompt não ficar colado.
 
-## 8. Créditos
+## 7. Créditos
 
 - A ideia de menu numerado veio de [eldanielG/mini_fs_linux](https://github.com/eldanielG/mini_fs_linux). Aquele projeto usa o sistema de arquivos real; aqui toda a lógica foi reescrita sobre estruturas simuladas.
 - Esboço da arquitetura e enunciado: disciplina de Sistemas Operacionais, Univali.

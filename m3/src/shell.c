@@ -840,7 +840,7 @@ void shell_prompt(const Fs *fs, char *buf, size_t tam)
 
 int shell_loop(Fs *fs, int dentro_do_menu)
 {
-    /* Com a entrada vindo de um arquivo (testes, roteiro da demo), repete o
+    /* Com a entrada vindo de um arquivo (ex.: demo.txt), repete o
      * comando depois do prompt para a saída ficar legível. */
     int eco = !isatty(STDIN_FILENO);
     char linha[LINHA_MAX], prompt[CAMINHO_MAX + 64];

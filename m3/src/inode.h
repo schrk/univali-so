@@ -82,7 +82,7 @@ FsErro inode_trunca(Disco *d, FCB *f, size_t novo_tamanho);
 const char *tipo_nome(TipoArquivo t);
 
 /* Relógio do simulador. Com a variável MFS_DATA_FIXA definida, devolve
- * sempre o mesmo instante (para os testes terem saída reproduzível). */
+ * sempre o mesmo instante (útil para comparar saídas). */
 time_t agora(void);
 
 #endif
