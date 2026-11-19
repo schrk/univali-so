@@ -1,0 +1,75 @@
+# 3.3 - Permissões RWX para dono, grupo e outros (alice e bob: grupo dev; carol: visitantes)
+id
+echo "segredo" > nota.txt
+ls -l nota.txt
+chmod 640 nota.txt
+ls -l nota.txt
+su bob
+id
+cat /home/alice/nota.txt
+echo "bob escreveu" >> /home/alice/nota.txt
+chmod 777 /home/alice/nota.txt
+su carol
+cat /home/alice/nota.txt
+su alice
+chmod g+w,o+r nota.txt
+ls -l nota.txt
+su bob
+echo "bob escreveu" >> /home/alice/nota.txt
+su carol
+cat /home/alice/nota.txt
+# o dono usa SÓ os bits de dono, mesmo que outros tenham mais
+su alice
+chmod 077 nota.txt
+cat nota.txt
+chmod u=rw nota.txt
+cat nota.txt
+# diretórios: r = listar, w = criar/apagar nomes, x = atravessar
+mkdir privado
+echo "x" > privado/arq
+chmod 700 privado
+su bob
+ls /home/alice/privado
+cat /home/alice/privado/arq
+cd /home/alice/privado
+su alice
+chmod 711 privado
+su bob
+ls /home/alice/privado
+cat /home/alice/privado/arq
+touch /home/alice/privado/novo
+# apagar depende do diretório, não do arquivo
+touch /tmp/do_bob
+chmod 000 /tmp/do_bob
+rm /tmp/do_bob
+# execução
+su alice
+echo -e "#!mfs\necho executou como:\nwhoami" > script
+./script
+chmod u+x script
+./script
+su bob
+./script
+cd /home/alice
+exec script
+su alice
+chmod 755 script
+su bob
+exec script
+# root: ignora r/w, mas só executa se houver algum bit x
+su root
+chmod 600 /home/alice/script
+cat /home/alice/script
+exec /home/alice/script
+chown carol:visitantes /home/alice/script
+ls -l /home/alice/script
+su alice
+chown alice /home/alice/script
+chmod 777 /home/alice/script
+# umask
+umask
+umask 027
+touch novo
+mkdir novodir
+ls -l novo novodir
+ls -l

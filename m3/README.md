@@ -1,412 +1,504 @@
-# M3 — Mini-sistema de arquivos em memória (esboço de arquitetura)
+# M3 — Mini-sistema de arquivos em memória (em C)
 
-> **Status:** esboço. Ainda não tem código. Este documento define a arquitetura, as estruturas de dados
-> e os fluxos principais antes da implementação. Quando o código existir, este README vira a
-> documentação final pedida na seção 5.5 do enunciado.
+Simulador de um sistema de arquivos Unix-like que roda **inteiro em memória**. Ele tem:
 
-Simulador em **C** de um sistema de arquivos Unix-like que roda inteiro em memória: árvore de diretórios,
-FCB/inode por arquivo, permissões RWX com bitmask e um "disco" simulado (`char[]`) dividido em blocos
-com **alocação indexada**. É operado por um shell próprio (`mfs>`), com comandos parecidos com os do Linux.
+- árvore de diretórios feita com `struct` e ponteiros;
+- um **FCB/inode** para cada arquivo;
+- permissões **RWX para dono, grupo e outros**, verificadas com bitmask em toda operação;
+- um **disco simulado** (`char[]`) dividido em blocos, com **alocação indexada**.
 
----
+Nenhuma operação toca o sistema de arquivos real do Linux. Tudo acontece nas estruturas do programa.
 
-## 1. O que pesa na nota e como a arquitetura responde
+São 2 formas de uso, que executam exatamente o mesmo código:
 
-| Critério (peso) | O que o professor olha | Decisão de arquitetura |
-| --- | --- | --- |
-| **Funcionalidade e robustez (40%)** | tudo funciona, erros tratados, sem memory leak | toda operação devolve um `FsErro` (nunca `exit` no meio); um único ponto imprime a mensagem; dono único de cada `malloc`; `make memcheck` com valgrind obrigatório antes de entregar; roteiros de teste automáticos |
-| **Fidelidade aos conceitos (30%)** | FCB e diretórios claros, controle de acesso efetivo, ligação teoria/código, bônus (links, blocos) | FCB/inode **separado** da entrada de diretório (como no Unix) → permite `ln` (hard link) de graça; permissões checadas num único lugar (`perm_checa`) em **toda** operação, inclusive `cd` e criação em diretório; alocação de blocos indexada visível (`blocos`, `df`) |
-| **Qualidade do código (20%)** | modular, comentado, uso de ponteiros, `malloc`, `typedef`, `enum` | 6 módulos com `.h` próprio, sem variáveis globais espalhadas (só o contexto `Fs`); `typedef`/`enum` para tipos, erros e permissões |
-| **Documentação (10%)** | README claro, foco em teoria ↔ implementação | seção "Conceito → onde está no código" (seção 8) e comparação lado a lado com o Linux real (seção 9) |
-| Apresentação (YouTube) | — | roteiro `demo.txt` que roda do começo ao fim e mostra cada conceito (seção 10) |
+- **menu numerado**: a navegação foi inspirada em [eldanielG/mini_fs_linux](https://github.com/eldanielG/mini_fs_linux);
+- **terminal** com comandos iguais aos do Linux (`ls -l`, `chmod 640`, `echo "x" > arq`...).
 
-**Prioridade de implementação**: o que vale 70% (funcionar sem leak + conceitos corretos) vem antes de
-qualquer enfeite. Ordem na seção 11.
-
----
-
-## 2. Visão geral
-
-```
-             ┌──────────────────────────────────────────────┐
-  stdin ───► │ shell   (lê linha, separa args, despacha)    │ ──► stdout / mensagens de erro
-  (ou        └───────────────┬──────────────────────────────┘
-  roteiro)                   │ chama fs_*(...) e recebe FsErro
-             ┌───────────────▼──────────────────────────────┐
-             │ fs      (árvore de diretórios, caminhos,     │
-             │          touch, mkdir, cp, mv, rm, ln, ...)  │
-             └──────┬───────────────┬───────────────┬───────┘
-                    │               │               │
-             ┌──────▼─────┐  ┌──────▼──────┐  ┌─────▼────────┐
-             │ inode      │  │ perm        │  │ disco        │
-             │ tabela de  │  │ usuários,   │  │ char[] em    │
-             │ FCBs       │  │ grupos, RWX │  │ blocos +     │
-             │            │  │ bitmask     │  │ bitmap livre │
-             └────────────┘  └─────────────┘  └──────────────┘
-```
-
-Regra de dependência: `shell → fs → {inode, perm, disco}`. As camadas de baixo não conhecem o shell e
-não imprimem nada (só devolvem código de erro). Isso deixa cada módulo testável sozinho e evita
-`printf` espalhado.
-
-### Módulos / arquivos previstos
-
-| Arquivo | Responsabilidade |
+| Arquivo | O que é |
 | --- | --- |
-| `main.c` | cria o `Fs`, popula usuários, entra no loop do shell, destrói tudo no fim |
-| `shell.c/.h` | REPL, tokenização (aspas, `>` e `>>`), tabela de comandos `{nome, função, ajuda}` |
-| `fs.c/.h` | árvore de diretórios, resolução de caminho, operações de alto nível |
-| `inode.c/.h` | `FCB` (inode simulado), tabela de inodes, contador de links |
-| `perm.c/.h` | usuários/grupos, usuário atual, `perm_checa`, conversão `"755"` ↔ `rwxr-xr-x` |
-| `disco.c/.h` | disco simulado, bitmap de blocos livres, alocar/liberar/ler/escrever blocos |
-| `erros.h` | `enum FsErro` + `fs_strerro()` |
-| `Makefile` | `make`, `make teste`, `make memcheck`, `make demo` |
-| `testes/` | roteiros `.txt` + saída esperada `.esperado` |
+| `src/main.c` | menu interativo e escolha do modo |
+| `src/shell.c/.h` | terminal: separa a linha em argumentos, despacha os comandos e imprime resultados e erros |
+| `src/fs.c/.h` | **árvore de diretórios**, resolução de caminhos e operações (mkdir, cp, mv, rm, ln...) |
+| `src/inode.c/.h` | **FCB/inode**, tabela de inodes e **alocação indexada** de blocos |
+| `src/perm.c/.h` | usuários, grupos e **verificação RWX com bitmask**; `chmod` octal e simbólico |
+| `src/disco.c/.h` | **disco simulado** e **bitmap** de blocos livres |
+| `src/erros.c/.h` | `enum FsErro` e as mensagens de erro |
+| `testes/` | 7 roteiros com a saída esperada, `rodar.sh` e o roteiro da apresentação (`demo.txt`) |
+| `Makefile` | `make`, `make teste`, `make memcheck`, `make demo`, `make clean` |
 
 ---
 
-## 3. Estruturas de dados
+## 1. Como compilar e executar
 
-### 3.1 Disco simulado e alocação indexada (objetivo 3.4)
+Funciona em Linux, WSL ou GitHub Codespaces. Só precisa de `gcc` e `make` (e de `valgrind` para o `make memcheck`).
 
-```c
-#define TAM_BLOCO     64          /* pequeno de propósito: arquivos curtos já ocupam vários blocos */
-#define N_BLOCOS      1024        /* disco de 64 KiB */
-#define N_DIRETOS     8           /* ponteiros diretos no inode */
-
-typedef struct {
-    char     dados[N_BLOCOS][TAM_BLOCO];  /* o "disco": um char[] contínuo */
-    uint8_t  livre[N_BLOCOS];             /* bitmap (1 = livre); poderia ser bit a bit */
-    int      n_livres;
-} Disco;
+```bash
+cd m3
+make
 ```
 
-- **Método escolhido: indexada** (8 ponteiros diretos + 1 bloco de índice indireto simples).
-  Tamanho máximo: `(8 + 64/sizeof(int)) * 64 = (8 + 16) * 64 = 1536 bytes` — suficiente para
-  mostrar o indireto sendo usado com um `echo` maior.
-- Por que indexada: não tem fragmentação externa (problema da contínua), tem acesso direto ao
-  bloco *n* (problema da encadeada) e é o modelo do inode do ext2/ext3, então conversa com o Linux.
-- Contínua e encadeada **entram na discussão teórica do README** (vantagens/desvantagens + desenho),
-  não no código. *Opcional, se sobrar tempo:* flag `--alocacao contigua` para comparar fragmentação.
-- Diretórios **não** usam blocos do disco (as entradas ficam na árvore em memória). Isso é uma
-  simplificação consciente e será explicada.
+```bash
+./mfs
+```
 
-### 3.2 FCB / inode simulado (objetivo 3.2)
+O comando acima abre o **menu numerado**.
+
+```bash
+./mfs -t
+```
+
+O comando acima abre direto o **terminal**, com comandos estilo Linux.
+
+```bash
+make teste
+```
+
+Roda os 7 roteiros e compara cada saída com o gabarito.
+
+```bash
+make memcheck
+```
+
+Roda os mesmos roteiros no valgrind e exige 0 erros e 0 leaks.
+
+```bash
+make demo
+```
+
+Roda o roteiro da apresentação (`testes/demo.txt`).
+
+O terminal também aceita um roteiro pela entrada padrão (`./mfs -t < roteiro.txt`). Nesse caso cada comando é repetido depois do prompt, para a saída ficar legível.
+
+### Menu
+
+```
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+```
+
+Cada opção pergunta os dados, monta o comando equivalente e chama o mesmo interpretador do terminal. Por isso as mensagens de erro e as permissões são idênticas nos dois modos.
+
+Em relação ao trabalho de referência, a leitura usa `fgets`, então aceita espaços e não estoura buffer, e não é preciso usar `_` no lugar de espaço. Na opção 24, o comando `menu` volta ao menu.
+
+### Estado inicial
+
+| Usuário | uid | Grupo (gid) | Observação |
+| --- | --- | --- | --- |
+| `root` | 0 | root (0) | ignora r/w; só executa se houver algum bit `x` |
+| `alice` | 1000 | dev (100) | **usuário inicial**, começa em `/home/alice` |
+| `bob` | 1001 | dev (100) | mesmo grupo da alice |
+| `carol` | 1002 | visitantes (200) | cai em "outros" nos arquivos do grupo dev |
+
+Os diretórios iniciais são `/home/{alice,bob,carol}` (cada um do seu dono, modo 755) e `/tmp` (777). A troca de usuário é feita com `su` e não pede senha.
+
+### Comandos do terminal
+
+| Comando | O que faz | Linux |
+| --- | --- | --- |
+| `pwd`, `cd [dir]` | mostra o diretório atual / navega (sem argumento vai para o home) | igual |
+| `ls [-l] [-i] [caminho...]` | lista; `-l` detalhado, `-i` mostra o número do inode | `ls -F` |
+| `tree [dir]` | desenha a árvore | `tree` |
+| `mkdir [-p] dir...`, `rmdir dir...` | cria / remove diretório vazio | igual |
+| `touch arq...` | cria vazio ou atualiza as datas | igual |
+| `echo [-e] [-n] texto > arq` / `>> arq` | escreve / acrescenta (`-e` aceita `\n`, `\t`, `\xHH`) | igual |
+| `cat arq...` | lê | igual |
+| `read arq offset n` | **reposiciona** em `offset` e lê `n` bytes | `dd skip=… count=…` |
+| `truncate -s tamanho arq` | **trunca** ou estende com zeros | igual |
+| `cp origem destino` | copia: novo inode e novos blocos | igual (sem `-r`) |
+| `mv origem destino` | move/renomeia: mesmo inode | igual |
+| `ln origem novo` | **hard link**: mesmo inode, `links + 1` | igual (sem `-s`) |
+| `rm [-r] [-f] caminho...` | remove nome; o inode é liberado quando os links chegam a 0 | igual |
+| `stat caminho` | mostra o **FCB** inteiro, inclusive os ponteiros de bloco | igual |
+| `chmod modo arq...` | `640`, `u+x`, `go-w`, `a=r`, `u=rw,g=r,o=` | igual |
+| `chown usuario[:grupo] arq...` | troca dono/grupo (só root) | igual |
+| `umask [octal]` | máscara de criação (padrão `0022`) | igual |
+| `exec prog` ou `./prog` | executa um programa (`#!`); cada linha é um comando do simulador | `./prog` |
+| `su [usuario]`, `whoami`, `id` | usuário atual | igual |
+| `blocos arq` | mostra cada bloco lógico → bloco físico e o conteúdo | `filefrag -v` / `debugfs` |
+| `df` | blocos usados/livres e mapa de bits do disco | `df` |
+| `inodes` | tabela de inodes em uso | `debugfs -R ls` |
+| `help`, `exit` | | |
+
+---
+
+## 2. Arquitetura
+
+```
+                 ┌───────────────────────────┐
+  usuário ──────►│ main.c  (menu numerado)    │──┐ monta argv
+                 └───────────────────────────┘  │
+                 ┌───────────────────────────┐  │
+  usuário ──────►│ shell.c (terminal)         │◄─┘  interpreta, despacha, imprime mensagens
+                 └─────────────┬─────────────┘
+                               │ fs_*(...) devolve FsErro (nunca imprime)
+                 ┌─────────────▼─────────────┐
+                 │ fs.c  árvore, caminhos,    │
+                 │       operações            │
+                 └──┬──────────┬──────────┬──┘
+           ┌────────▼───┐ ┌────▼──────┐ ┌─▼──────────────┐
+           │ perm.c     │ │ inode.c   │ │ disco.c         │
+           │ RWX bitmask│ │ FCB +     │─►│ char[][64] +   │
+           │ usuários   │ │ blocos    │ │ bitmap livre    │
+           └────────────┘ └───────────┘ └─────────────────┘
+```
+
+Regras que deixam o código modular:
+
+- **As dependências só descem.** `disco` não sabe o que é arquivo; `inode` não sabe o que é diretório; `fs` não sabe o que é terminal.
+- **Só o shell imprime.** Todas as outras camadas devolvem um `FsErro`.
+- **Uma única função decide o acesso:** `perm_checa`, chamada por todas as operações.
+- **Não há variáveis globais soltas.** O estado inteiro (disco, tabela de inodes, raiz, diretório atual, usuário atual, umask) fica em um `Fs`, criado com `calloc` e passado por ponteiro.
+
+### Exemplo: `cat /home/alice/a.txt`
+
+1. O `shell` separa os argumentos e chama `fs_le(fs, "/home/alice/a.txt", ...)`.
+2. `fs_resolve` parte da raiz e, para cada diretório (`/`, `home`, `alice`), confere se é diretório e se o usuário tem **x**. Depois procura o próximo nome na lista de filhos.
+3. Achou a `Entrada` de `a.txt`, que aponta para o inode. É diretório? Então devolve `FS_E_EH_DIRETORIO`. O usuário tem **r**? Se não, devolve `FS_E_PERMISSAO`.
+4. `inode_le` converte cada posição em bloco lógico e depois em bloco físico (pelos ponteiros diretos ou pelo bloco indireto) e copia os bytes do disco para um buffer alocado com `malloc`.
+5. O shell imprime o conteúdo e faz `free`. Se algo falhou, imprime `cat: /home/alice/a.txt: permissão negada`.
+
+---
+
+## 3. Conceitos teóricos e como estão implementados
+
+### 3.1 Arquivo e seus atributos
+
+Um arquivo é um **tipo abstrato de dados**: uma sequência de bytes com nome e atributos. O sistema de arquivos esconde o disco e faz o **mapeamento lógico → físico**: o usuário pede "o byte 100 de `a.txt`" e o simulador encontra o bloco e o deslocamento.
+
+Os atributos ficam no FCB (seção 3.3):
+
+| Atributo (teoria) | Campo no simulador |
+| --- | --- |
+| nome | `Entrada.nome` (fica no diretório, como no Unix) |
+| identificador | `FCB.id`: número do inode |
+| tipo | `FCB.tipo` (`enum TipoArquivo`): diretório, texto, numérico, binário, programa |
+| localização | `FCB.diretos[8]` + `FCB.indireto` |
+| tamanho | `FCB.tamanho` (bytes) e `FCB.n_blocos` |
+| proteção | `FCB.perm` (9 bits), `FCB.dono`, `FCB.grupo` |
+| datas | `FCB.criado`, `FCB.modificado`, `FCB.acessado` (`time_t`) |
+
+O **tipo** é deduzido do conteúdo a cada escrita (`tipo_infere` em `inode.c`):
+
+- começa com `#!` → **programa**;
+- contém bytes de controle → **binário**;
+- só dígitos e separadores → **numérico**;
+- caso contrário → **texto**.
+
+O `stat` mostra o tipo junto com os outros atributos.
+
+### 3.2 Operações com arquivos
+
+As 6 operações básicas da teoria e onde estão:
+
+| Operação | Função | Comando | O que acontece |
+| --- | --- | --- | --- |
+| criar | `fs_touch` / `cria_no` | `touch` | aloca um inode (`inode_novo`) e insere a entrada no diretório pai |
+| escrever | `fs_escreve` → `inode_escreve` | `echo >`, `echo >>` | aloca ou libera blocos e copia os bytes bloco a bloco |
+| ler | `fs_le` → `inode_le` | `cat` | percorre os blocos e atualiza `acessado` |
+| reposicionar | `fs_le(offset, n)` | `read arq offset n` | começa a leitura no bloco `offset / 64`, posição `offset % 64` |
+| excluir | `fs_rm` | `rm` | remove o nome; `n_links--`; com 0 links libera inode e blocos |
+| truncar | `fs_trunca` → `inode_trunca` | `truncate -s` | diminuindo, libera blocos; aumentando, completa com zeros |
+
+As operações compostas são montadas com essas primitivas:
+
+| | nova entrada? | novo inode? | novos blocos? |
+| --- | --- | --- | --- |
+| `cp` | sim | **sim** | **sim** (dados copiados) |
+| `mv` | a mesma entrada muda de lugar | não | não |
+| `ln` | sim | não (`n_links++`) | não |
+
+Isso fica visível no `ls -i`. Saída real do `make demo`:
+
+```
+alice@mfs:/home/alice$ cp leia.txt copia.txt
+alice@mfs:/home/alice$ mv copia.txt projetos/renomeado.txt
+alice@mfs:/home/alice$ ln leia.txt atalho.txt
+alice@mfs:/home/alice$ ls -li . projetos
+.:
+ 10 -rw-r--r--  2 alice  dev           27 2025-11-19 14:00 atalho.txt     <- mesmo inode (10), 2 links
+ 10 -rw-r--r--  2 alice  dev           27 2025-11-19 14:00 leia.txt
+  7 drwxr-xr-x  3 alice  dev            0 2025-11-19 14:00 projetos/
+
+projetos:
+ 11 -rw-r--r--  1 alice  dev           27 2025-11-19 14:00 renomeado.txt  <- a cópia ganhou inode 11; o mv manteve
+  8 drwxr-xr-x  3 alice  dev            0 2025-11-19 14:00 so/
+```
+
+### 3.3 File Control Block (FCB) e o inode simulado
 
 ```c
-typedef enum { T_DIRETORIO, T_TEXTO, T_NUMERICO, T_BINARIO, T_PROGRAMA } TipoArquivo;
-
 typedef struct {
-    int          id;                 /* número do inode (índice na tabela) */
-    TipoArquivo  tipo;
-    size_t       tamanho;            /* bytes */
-    int          dono;               /* uid */
-    int          grupo;              /* gid */
-    uint16_t     perm;               /* 9 bits: rwx rwx rwx (ex.: 0755) */
-    time_t       criado, modificado, acessado;
-    int          n_links;            /* quantas entradas de diretório apontam para cá */
-    int          n_blocos;
-    int          diretos[N_DIRETOS]; /* -1 = não usado */
-    int          indireto;           /* bloco que guarda mais índices, -1 = não usado */
+    int         id;                 /* número do inode */
+    TipoArquivo tipo;
+    size_t      tamanho;
+    int         dono, grupo;        /* uid, gid */
+    uint16_t    perm;               /* rwxrwxrwx, ex.: 0754 */
+    time_t      criado, modificado, acessado;
+    int         n_links;            /* quantos nomes apontam para este inode */
+    int         n_blocos;
+    int         diretos[N_DIRETOS]; /* 8 ponteiros diretos para blocos */
+    int         indireto;           /* bloco que guarda mais 16 ponteiros */
 } FCB;
-
-typedef struct {
-    FCB  **v;                        /* tabela de inodes: v[id] (NULL = livre) */
-    int    cap;
-} TabelaInodes;
 ```
 
-O **nome não fica no FCB**, fica na entrada de diretório — exatamente como no Unix. É isso que
-permite dois nomes para o mesmo inode (`ln`) e que faz `mv` não mudar o número do inode.
+- **O nome não fica no FCB.** Ele fica na `Entrada` do diretório, que é só um par `nome → FCB*`, exatamente como no Unix. Com isso:
+  - `mv` não muda o inode;
+  - `ln` cria um segundo nome para o mesmo inode (bônus de links);
+  - `rm` apaga um nome, e os dados só são liberados quando `n_links` chega a 0 (`desliga_inode` em `fs.c`).
+- **Tabela de inodes.** É um vetor dinâmico `FCB **v` que cresce com `realloc` (dobra de tamanho), e o índice é o número do inode. Um número liberado é reaproveitado, como no Linux. O comando `inodes` mostra a tabela.
 
-O tipo é inferido no `echo` (só dígitos → `T_NUMERICO`; bytes não imprimíveis → `T_BINARIO`;
-conteúdo começando com `#!` → `T_PROGRAMA`; senão `T_TEXTO`) e aparece no `stat`.
-
-### 3.3 Árvore de diretórios (objetivo 3.1)
+### 3.4 Estrutura de diretórios em árvore
 
 ```c
 typedef struct Entrada {
-    char            nome[NOME_MAX + 1]; /* NOME_MAX = 32 */
+    char            nome[NOME_MAX + 1];
     FCB            *inode;
-    struct Entrada *pai;                /* ".." */
-    struct Entrada *filhos;             /* 1º filho (só se diretório) */
-    struct Entrada *irmao;              /* próximo na lista do mesmo diretório */
+    struct Entrada *pai;     /* ".."  (na raiz aponta para ela mesma) */
+    struct Entrada *filhos;  /* primeiro filho */
+    struct Entrada *irmao;   /* próximo do mesmo diretório */
 } Entrada;
 ```
 
-- Árvore n-ária no formato **primeiro-filho / próximo-irmão** (lista encadeada de filhos por
-  diretório). Simples com ponteiros, sem limite fixo de filhos.
-- `pai` permite `cd ..`, `pwd` (sobe até a raiz montando o caminho) e impede `mv` de um diretório
-  para dentro dele mesmo.
-- `.` e `..` são resolvidos na busca, não armazenados como entradas.
+É uma árvore n-ária na forma **primeiro filho / próximo irmão**: cada diretório tem uma lista encadeada de filhos, mantida em ordem alfabética. O ponteiro `pai` permite:
 
-### 3.4 Usuários e contexto
+- `cd ..`;
+- montar o `pwd` subindo até a raiz;
+- impedir `mv dir dir/sub` (diretório dentro dele mesmo);
+- impedir `rmdir` do diretório atual ou de um ancestral dele (o `cwd` ficaria apontando para memória liberada).
 
-```c
-typedef struct { int uid; char nome[16]; int gid; } Usuario;
-typedef struct { int gid; char nome[16]; } Grupo;
+Caminhos absolutos (`/home/alice`) começam na raiz; relativos (`docs/a.txt`) começam no diretório atual. `.` e `..` são resolvidos na hora, não são entradas guardadas.
 
-typedef struct {
-    Disco         disco;
-    TabelaInodes  inodes;
-    Entrada      *raiz;
-    Entrada      *cwd;       /* diretório atual */
-    Usuario      *atual;     /* "usuário atual" do enunciado */
-    Usuario       usuarios[MAX_USUARIOS];
-    int           n_usuarios;
-    uint16_t      umask;     /* 022 por padrão */
-} Fs;
+**Vantagens da árvore em relação a diretório de nível único ou de dois níveis:**
+
+- **Eficiência:** a busca por um nome percorre só a lista do diretório certo em cada nível do caminho, não todos os arquivos do sistema.
+- **Nomeação:** o mesmo nome pode existir em diretórios diferentes (`/home/alice/notas` e `/home/bob/notas`), e cada usuário tem seu espaço de nomes.
+- **Agrupamento:** arquivos relacionados ficam juntos (`projetos/so/m3`), e a permissão de um diretório protege tudo o que está abaixo dele (sem `x` no diretório não se chega aos arquivos).
+
+Com o `ln`, a estrutura passa a ser um **grafo acíclico** (um arquivo em dois diretórios). Hard link para diretório é proibido, como no Linux, justamente para não criar ciclos.
+
+### 3.5 Proteção: RWX, dono/grupo/outros e `chmod` com bitmask
+
+As permissões são 9 bits, no mesmo layout do Unix:
+
+```
+            dono   grupo  outros
+            r w x  r w x  r w x
+    bit:    8 7 6  5 4 3  2 1 0         chmod 754 = 111 101 100 = rwxr-xr--
 ```
 
-Usuários fixos pré-cadastrados: `root (0, grupo root)`, `alice (1000, grupo dev)`,
-`bob (1001, grupo dev)`, `carol (1002, grupo outros)`. Troca com `su <nome>`. Um único `Fs`
-é passado por ponteiro para todas as funções (nada de globais soltas).
-
-### 3.5 Erros
+A verificação (`perm.c`) é feita em **todas** as operações, antes de qualquer alteração. É o "bloqueio obrigatório" do enunciado: não existe caminho no código que leia ou escreva sem passar por ela.
 
 ```c
-typedef enum {
-    FS_OK = 0,
-    FS_E_NAO_EXISTE,     /* No such file or directory */
-    FS_E_JA_EXISTE,      /* File exists */
-    FS_E_PERMISSAO,      /* Permission denied */
-    FS_E_NAO_DIRETORIO,  /* Not a directory */
-    FS_E_EH_DIRETORIO,   /* Is a directory */
-    FS_E_NAO_VAZIO,      /* Directory not empty */
-    FS_E_NOME_INVALIDO,  /* nome vazio, com '/', > NOME_MAX, "." ou ".." */
-    FS_E_SEM_ESPACO,     /* No space left on device (sem blocos ou arquivo grande demais) */
-    FS_E_SEM_MEMORIA,    /* malloc falhou */
-    FS_E_ARGUMENTOS,     /* uso incorreto do comando */
-    FS_E_OPERACAO        /* operação inválida (ex.: mv dir para dentro de si) */
-} FsErro;
-```
-
-Mensagem padronizada pelo shell, no formato do Linux:
-`cat: /home/alice/x.txt: arquivo ou diretório não encontrado`.
-
----
-
-## 4. Permissões (objetivo 3.3)
-
-Bits no mesmo layout do Unix (`0755` = `rwxr-xr-x`):
-
-```c
-enum { P_LER = 4, P_ESCREVER = 2, P_EXECUTAR = 1 };
-
-/* único ponto de decisão de acesso */
-bool perm_checa(const Fs *fs, const FCB *f, int op) {
-    if (fs->atual->uid == 0) return true;               /* root ignora (como no Linux) */
-    int desloc = (fs->atual->uid == f->dono)  ? 6       /* owner */
-               : (fs->atual->gid == f->grupo) ? 3       /* group */
-               :                                0;      /* others */
-    return ((f->perm >> desloc) & op) == op;
+bool perm_checa(const Usuario *u, const FCB *f, int op)   /* op = P_R|P_W|P_X */
+{
+    if (u->uid == 0) ...                     /* root: tudo, mas exec só com algum x */
+    int desloc = (u->uid == f->dono)  ? 6    /* escolhe UMA classe */
+               : (u->gid == f->grupo) ? 3
+               :                        0;
+    return ((f->perm >> desloc) & op) == op; /* desloca e testa com AND */
 }
 ```
 
-- `chmod 640 f` → `perm = strtol("640", NULL, 8)`; também aceitar simbólico simples
-  (`u+x`, `go-w`) com `|=`/`&= ~` — mostra os operadores bit a bit.
-- Exibição: `ls -l` e `stat` montam `drwxr-x---` testando cada bit.
-- Arquivos novos: `0666 & ~umask` (arquivo) e `0777 & ~umask` (diretório).
-- `chmod`/`chown` só pelo dono ou root.
+Na conversão para texto (`perm_str`), cada bit é testado com `f->perm & (0400 >> i)`. O `chmod` aceita:
 
-**O que exige cada permissão** (semântica real do Unix, ponto forte em "efetividade do controle"):
+- **octal**: cada dígito são 3 bits, `v = (v << 3) | digito`;
+- **simbólico**:
+  - `u+x` → `perm |= 0100`;
+  - `go-w` → `perm &= ~0022`;
+  - `u=rw` → `perm = (perm & ~0700) | 0600`.
 
-| Operação | Precisa |
+O `umask` (padrão 022) é retirado na criação: `0666 & ~umask` para arquivos e `0777 & ~umask` para diretórios.
+
+**O que cada operação exige**, igual ao Linux:
+
+| Operação | Exige |
 | --- | --- |
-| `cat`, `cp` (origem) | `r` no arquivo + `x` em cada diretório do caminho |
-| `echo >`, `echo >>`, `truncate` | `w` no arquivo |
-| `exec` | `x` no arquivo (e tipo `T_PROGRAMA`) |
+| usar um diretório num caminho, `cd` | `x` no diretório |
 | `ls` | `r` no diretório |
-| `cd`, atravessar caminho | `x` no diretório |
-| `touch`/`mkdir`/`rm`/`mv`/`ln` (criar/remover nome) | `w` + `x` no diretório **pai** |
+| `cat`, `read`, `cp` (origem) | `r` no arquivo |
+| `echo >`, `echo >>`, `truncate` | `w` no arquivo |
+| criar ou apagar um nome (`touch`, `mkdir`, `rm`, `mv`, `ln`) | `w` **e** `x` no diretório **pai** (não no arquivo!) |
+| `exec` / `./prog` | `x` e `r` no arquivo (o script precisa ser lido) |
+| `chmod` | ser o dono ou root |
+| `chown` | ser root |
 
----
+Detalhes que o simulador reproduz:
 
-## 5. Comandos do shell
+- O **dono usa só os bits de dono**. Com `chmod 077`, a própria dona é negada, mesmo que "outros" tenham `rwx`.
+- Com **`chmod 711` num diretório**, os outros não conseguem listá-lo (sem `r`), mas abrem um arquivo dentro dele se souberem o nome (têm `x`).
+- **Apagar um arquivo depende do diretório.** Bob apaga `/tmp/do_bob` mesmo com o arquivo em `000`, porque `/tmp` é `777`.
+- O **root** lê e escreve qualquer coisa, mas só executa se houver algum bit `x`.
 
-| Comando | O que faz | Linux equivalente |
-| --- | --- | --- |
-| `mkdir [-p] <dir>` | cria diretório | `mkdir` |
-| `rmdir <dir>` | remove diretório vazio | `rmdir` |
-| `cd <dir>` / `pwd` | navega / mostra caminho | `cd` / `pwd` |
-| `ls [-l] [-i] [dir]` | lista; `-l` com permissões, dono, tamanho, data; `-i` mostra inode | `ls -li` |
-| `tree [dir]` | desenha a árvore | `tree` |
-| `touch <arq>` | cria vazio ou atualiza datas | `touch` |
-| `echo "txt" > arq` / `>> arq` | escreve / anexa (aloca blocos) | `echo` |
-| `cat <arq>` | lê conteúdo (atualiza `acessado`) | `cat` |
-| `read <arq> <offset> <n>` | lê a partir de uma posição (**reposicionar**) | `dd skip=` / `tail -c` |
-| `truncate <arq> <tam>` | corta/estende (**truncar**, libera blocos) | `truncate -s` |
-| `cp <orig> <dest>` | novo inode + novos blocos | `cp` |
-| `mv <orig> <dest>` | move/renomeia; inode **não muda** | `mv` |
-| `rm [-r] <arq>` | remove nome; libera inode quando `n_links == 0` | `rm` |
-| `ln <orig> <novo>` | hard link (bônus) | `ln` |
-| `stat <arq>` | mostra o FCB inteiro | `stat` |
-| `chmod <octal\|simb> <arq>` | altera permissões | `chmod` |
-| `chown <usuario>[:grupo] <arq>` | altera dono (root) | `chown` |
-| `exec <arq>` | "executa" programa (checa `x`, imprime o conteúdo como se rodasse) | `./arq` |
-| `su <usuario>` / `whoami` / `id` | troca/mostra usuário atual | `su` / `whoami` / `id` |
-| `umask [octal]` | máscara de criação | `umask` |
-| `blocos <arq>` | mostra os blocos do arquivo e o conteúdo de cada um | `debugfs -R "blocks"` / `filefrag -v` |
-| `df` | blocos usados/livres + mapa do bitmap | `df` |
-| `help`, `exit` | | |
-
-Modos de execução: interativo (`./mfs`) e por roteiro (`./mfs < roteiro.txt` ou `./mfs -f roteiro.txt`),
-que imprime cada comando antes da saída — usado pelos testes e pela demo.
-
----
-
-## 6. Fluxos principais
-
-### 6.1 Resolução de caminho (usado por todos os comandos)
+Saída real do `make demo`:
 
 ```
-resolve(fs, "a/b/c", &entrada):
-  atual = caminho começa com '/' ? raiz : cwd
-  para cada componente:
-      "."  → continua
-      ".." → atual = atual->pai (raiz: fica na raiz)
-      se atual não é diretório       → FS_E_NAO_DIRETORIO
-      se !perm_checa(atual, X)       → FS_E_PERMISSAO
-      atual = busca_filho(atual, nome) ou FS_E_NAO_EXISTE
-  devolve atual
+alice@mfs:/home/alice$ chmod 640 salario.txt
+alice@mfs:/home/alice$ su bob                      # bob é do grupo dev: r--
+bob@mfs:/home/alice$ cat /home/alice/salario.txt
+salario: 1000
+bob@mfs:/home/alice$ echo "hack" >> /home/alice/salario.txt
+echo: /home/alice/salario.txt: permissão negada
+bob@mfs:/home/alice$ su carol                      # carol é "outros": ---
+carol@mfs:/home/alice$ cat /home/alice/salario.txt
+cat: /home/alice/salario.txt: permissão negada
 ```
 
-Variante `resolve_pai` devolve o diretório pai + o último nome (para criar/remover/renomear).
+### 3.6 Alocação de blocos
 
-### 6.2 Escrita (`echo "..." > arq`)
+O disco é `char dados[256][64]`: 256 blocos de 64 bytes (16 KiB). O bloco é pequeno de propósito, para um texto curto já ocupar vários blocos.
 
-```
-1. resolve_pai → (dir, nome); valida nome
-2. existe?  não → cria (passo 6.3)   sim → é diretório? FS_E_EH_DIRETORIO
-3. perm_checa(arq, W)                     senão FS_E_PERMISSAO
-4. calcula blocos necessários = ceil(len / TAM_BLOCO)
-5. cabe? (n_livres + blocos já do arquivo ≥ necessários, e ≤ máximo do inode)
-                                          senão FS_E_SEM_ESPACO  (nada é alterado)
-6. libera blocos antigos (">") ou continua do último (">>")
-7. aloca blocos livres no bitmap, copia pedaços de TAM_BLOCO, preenche diretos[]/indireto
-8. atualiza tamanho, tipo, modificado; acessado
-```
+**Gerência do espaço livre:** um **bitmap** (`livre[256]`) e um contador. `disco_aloca` usa *first-fit* e zera o bloco; `disco_libera` só marca o bloco como livre de novo.
 
-A checagem do passo 5 **antes** de mexer em qualquer coisa garante que uma falha não deixa o arquivo
-pela metade (robustez).
+**Comparação dos 3 métodos da teoria:**
 
-### 6.3 Criação (`touch`, `mkdir`)
-
-```
-resolve_pai → (dir, nome) → valida nome → perm_checa(dir, W|X)
-→ já existe? (touch: só atualiza datas; mkdir: FS_E_JA_EXISTE)
-→ inode_novo(tipo, dono=atual, grupo=atual.gid, perm=padrão & ~umask)
-→ entrada_nova(nome, inode) → insere na lista de filhos de dir
-```
-
-### 6.4 Remoção (`rm`) e ciclo de vida do inode
-
-```
-resolve_pai → perm_checa(pai, W|X) → é diretório e sem -r? FS_E_EH_DIRETORIO
-→ desliga a entrada da lista do pai, free(entrada)
-→ inode->n_links--
-→ se n_links == 0: disco_libera(blocos), tabela.v[id] = NULL, free(inode)
-```
-
-### 6.5 `cp` × `mv` × `ln` (ponto didático para o vídeo)
-
-| | nova entrada | novo inode | novos blocos |
+| Método | Como funciona | Vantagem | Desvantagem |
 | --- | --- | --- | --- |
-| `cp` | sim | sim | sim (cópia dos dados) |
-| `mv` | move a mesma entrada | não | não |
-| `ln` | sim | não (`n_links++`) | não |
+| Contígua | o FCB guarda início + quantidade; os blocos são seguidos | leitura sequencial e acesso direto simples | **fragmentação externa**; o arquivo não cresce se o vizinho estiver ocupado |
+| Encadeada | cada bloco guarda o número do próximo; o FCB guarda o primeiro | sem fragmentação externa, cresce fácil | para chegar ao bloco *n* é preciso ler os *n − 1* anteriores; um ponteiro corrompido perde o resto |
+| **Indexada** (implementada) | o FCB tem uma lista de índices de blocos | **acesso direto** e **sem fragmentação externa** | gasta espaço com índices e tem tamanho máximo |
 
-`ls -i` antes e depois mostra isso, igual ao Linux.
+O simulador implementa a **indexada no estilo do inode do ext2**: **8 ponteiros diretos** no FCB e **1 bloco indireto simples**. O bloco indireto é um bloco do disco que guarda mais 16 números de bloco (64 bytes ÷ 4 bytes por `int32`).
 
----
+- Tamanho máximo do arquivo: (8 + 16) × 64 = **1536 bytes**.
+- Passar disso dá "arquivo grande demais".
+- Ficar sem blocos livres dá "não há espaço no disco simulado".
 
-## 7. Gestão de memória (parte do 40%)
+Nos dois casos o arquivo **não é alterado**: `redimensiona` confere se cabe antes de mexer em qualquer coisa. `cp` e `echo` para um arquivo novo também desfazem a criação se a escrita falhar.
 
-- **Dono único** de cada alocação:
-  - `Entrada` → pertence ao diretório pai (lista de filhos);
-  - `FCB` → pertence à `TabelaInodes`; só é liberado quando `n_links == 0`;
-  - blocos do disco → array estático, liberados só no bitmap.
-- `fs_destroi()` desce a árvore em pós-ordem liberando entradas e, ao zerar links, os inodes.
-- Toda função que faz `malloc` checa `NULL` e devolve `FS_E_SEM_MEMORIA`.
-- Strings com tamanho fixo (`NOME_MAX`) + `snprintf`/`strncpy` → sem overflow.
-- `make memcheck` roda todos os roteiros com
-  `valgrind --leak-check=full --error-exitcode=1`. **Critério de pronto: 0 leaks, 0 erros.**
-- Compilação com `-Wall -Wextra -Werror -std=c11 -g` e, em desenvolvimento,
-  `-fsanitize=address,undefined`.
-
----
-
-## 8. Conceito teórico → onde está no código
-
-Esta tabela é o esqueleto da seção "discussão explícita dos conceitos" exigida em 5.5.
-
-| Conceito (enunciado 5.5) | Onde aparece | Como será demonstrado |
-| --- | --- | --- |
-| Arquivo e seus atributos | `FCB` em `inode.h` | `stat arq` mostra nome, id, tipo, tamanho, dono, permissões, 3 datas |
-| Operações (criar, escrever, ler, reposicionar, excluir, truncar) | `fs_touch`, `fs_escreve`, `fs_le`, `fs_le_offset`, `fs_remove`, `fs_trunca` | um comando para cada uma |
-| FCB e inode | `FCB` separado de `Entrada`; `TabelaInodes` | `ls -i`, `ln`, `mv` preservando o id |
-| Diretório em árvore (eficiência, nomeação, agrupamento) | `Entrada` com `pai/filhos/irmao` | mesmo nome em pastas diferentes; busca só no diretório certo; `tree` |
-| Proteção RWX + owner/group/others, `chmod` com bitmask | `perm.c` (`perm_checa`, `>> desloc & op`) | sessão com `su alice`/`su bob`/`su carol` negando e permitindo |
-| Alocação de blocos | `disco.c`, `diretos[]`/`indireto` | `blocos arq` e `df` antes/depois de `echo`, `truncate`, `rm` |
-| Contínua × encadeada × indexada | texto + diagrama no README | comparação teórica; indexada no código |
-
----
-
-## 9. Comparação com o Linux real
-
-Script `comparacao.sh` executa a mesma sequência no bash real (em um diretório temporário) e no
-simulador, e o README mostra as duas saídas lado a lado. Exemplo do que se espera mostrar:
+Mapeamento lógico → físico (`inode.c`):
 
 ```
-mfs> echo "ola mundo" > a.txt          $ echo "ola mundo" > a.txt
-mfs> ln a.txt b.txt                    $ ln a.txt b.txt
-mfs> ls -li                            $ ls -li
-  3 -rw-r--r-- 2 alice dev 10 a.txt      1234 -rw-r--r-- 2 alice dev 10 a.txt
-  3 -rw-r--r-- 2 alice dev 10 b.txt      1234 -rw-r--r-- 2 alice dev 10 b.txt
-mfs> chmod 600 a.txt                   $ chmod 600 a.txt
-mfs> su bob                            $ sudo -u bob cat a.txt
-mfs> cat a.txt                         cat: a.txt: Permission denied
-cat: a.txt: permissão negada
+byte p  →  bloco lógico i = p / 64,  posição p % 64
+bloco lógico i < 8   →  f->diretos[i]
+bloco lógico i >= 8  →  (i - 8)-ésimo int32 dentro do bloco f->indireto
 ```
 
-Diferenças conhecidas (documentar): diretórios não ocupam blocos; não há links simbólicos (a menos que
-sobre tempo); `exec` não executa de verdade; usuários fixos.
+Saída real (`make demo`): 8 blocos de 64 bytes enchem os ponteiros diretos, e o 9º bloco força a alocação do bloco de índices.
+
+```
+alice@mfs:/home/alice$ blocos grande
+grande: inode 15, 544 bytes em 9 bloco(s) de 64 bytes (alocação indexada)
+  lógico  físico  bytes  conteúdo
+  d[0]         6     64  "Bloco 1: um texto com exatamente sessenta e quatro caracteres..\n"
+  ...
+  d[7]        13     64  "Bloco 8: um texto com exatamente sessenta e quatro caracteres..\n"
+  ind[0]      15     32  "Bloco 9 usa o ponteiro indireto\n"
+  bloco de índices (indireto) = 14 -> [15]
+alice@mfs:/home/alice$ df
+Disco simulado: 256 blocos de 64 bytes (16384 bytes)
+Usados: 16  Livres: 240  Uso: 6%  Inodes em uso: 15
+Mapa de bits (. livre  # dados  I índice):
+  000 ##############I#................................................
+```
+
+O teste `04_blocos` mostra também a vantagem da indexada sobre a contígua. Depois de apagar um arquivo, o disco fica com um buraco. Quando outro arquivo cresce, ele usa blocos espalhados, sem precisar de espaço contíguo:
+
+```
+  Diretos: [3 4 2 5 6 7 8 9]  Indireto: 1
+```
 
 ---
 
-## 10. Testes e demonstração
+## 4. Tratamento de erros
 
-- `testes/NN_nome.txt` + `testes/NN_nome.esperado`; `make teste` roda cada roteiro e faz `diff`.
-  Para a saída ser comparável, datas são impressas fixas quando `MFS_DATA_FIXA=1`.
-- Casos mínimos:
-  1. árvore: `mkdir -p`, `cd`, `cd ..`, `pwd`, caminho absoluto/relativo;
-  2. arquivos: `touch`, `echo >`/`>>`, `cat`, `read`, `truncate`, `cp`, `mv`, `rm`;
-  3. permissões: dono/grupo/outros, `chmod` octal e simbólico, diretório sem `x`, root;
-  4. blocos: arquivo de 1 bloco, de vários, usando o indireto, disco cheio (falha sem corromper);
-  5. erros: não existe, já existe, nome inválido, `rmdir` não vazio, `rm` em diretório, `mv` dir para dentro de si;
-  6. links: `ln`, `rm` de um dos nomes mantém os dados.
-- `demo.txt` (roteiro do vídeo, ~10 min): árvore → FCB/`stat` → operações → `cp`/`mv`/`ln` com
-  `ls -i` → permissões com troca de usuário → blocos com `blocos`/`df` → `make memcheck` limpo.
+Todos os erros são valores de `enum FsErro` (`erros.h`). O shell os mostra no formato do Linux, `comando: alvo: mensagem`:
 
----
+| Situação | Mensagem |
+| --- | --- |
+| caminho inexistente | `cat: nada: arquivo ou diretório não encontrado` |
+| sem permissão | `cat: /home/alice/nota.txt: permissão negada` |
+| nome inválido (vazio, > 32 caracteres, espaço, `/`) | `mkdir: com espaco: nome inválido (...)` |
+| já existe | `mkdir: /home/alice: arquivo já existe` |
+| tipo errado | `cd: ok: não é um diretório` / `cat: /home: é um diretório` |
+| `rmdir` com conteúdo | `rmdir: d: diretório não vazio` |
+| remover o diretório atual | `rmdir: ...: diretório em uso (é o diretório atual ou um ancestral dele)` |
+| disco cheio / arquivo grande | `cp: g: não há espaço no disco simulado` |
+| `chmod` de arquivo alheio | `chmod: nota.txt: operação não permitida` |
+| modo inválido | `chmod: abc: argumento inválido` |
+| uso errado | `uso: cp origem destino` |
+| aspas abertas, comando inexistente, linha longa | mensagens próprias, sem derrubar o programa |
+| programa que chama a si mesmo | `exec: ./loop: limite de 8 programas aninhados atingido` |
 
-## 11. Ordem de implementação
+O roteiro `testes/05_erros.txt` exercita todas essas situações.
 
-| Fase | Entrega | Critério coberto |
+## 5. Gerenciamento de memória
+
+- **Cada alocação tem um único responsável por liberá-la:**
+  - a `Entrada` pertence ao diretório pai;
+  - o `FCB` pertence à tabela de inodes e só é liberado quando `n_links == 0`;
+  - o buffer devolvido por `fs_le` é liberado por quem chamou.
+- `fs_destroi` desce a árvore em pós-ordem (`entrada_destroi`) e depois libera a tabela.
+- Todo `malloc`, `calloc` e `realloc` é verificado. Em falha, devolve `FS_E_SEM_MEMORIA` e desfaz o que já tinha feito.
+- **Entrada limitada em tamanho:** `fgets` com tamanho, nomes de no máximo 32 caracteres e caminhos de no máximo 255.
+- O `Makefile` compila com `-std=c11 -Wall -Wextra -Wpedantic`, sem nenhum warning.
+
+Resultado de `make memcheck`, com os 7 roteiros rodando no valgrind (`--leak-check=full --errors-for-leak-kinds=all`):
+
+```
+ok      01_arvore (valgrind: 0 erros, 0 leaks)
+ok      02_arquivos (valgrind: 0 erros, 0 leaks)
+ok      03_permissoes (valgrind: 0 erros, 0 leaks)
+ok      04_blocos (valgrind: 0 erros, 0 leaks)
+ok      05_erros (valgrind: 0 erros, 0 leaks)
+ok      06_links (valgrind: 0 erros, 0 leaks)
+ok      07_menu (valgrind: 0 erros, 0 leaks)
+7 ok, 0 falha(s)
+```
+
+## 6. Testes
+
+| Roteiro | Cobre |
+| --- | --- |
+| `01_arvore` | mkdir/-p, cd com caminhos absolutos e relativos, `..`, pwd, tree, rmdir |
+| `02_arquivos` | touch, echo >/>>, cat, read (reposicionar), truncate, tipos no stat, cp, mv, rm -r |
+| `03_permissoes` | dono/grupo/outros, chmod octal e simbólico, diretório sem r/x, rm dependendo do diretório, exec, root, chown, umask |
+| `04_blocos` | 1 bloco, vários blocos, bloco indireto, liberação no truncate/rm, limite do inode |
+| `05_erros` | todos os erros da seção 4 |
+| `06_links` | hard links, `n_links`, dados mantidos até o último `rm` |
+| `07_menu` | o menu numerado de ponta a ponta, inclusive o terminal dentro dele |
+
+Os testes rodam com `MFS_DATA_FIXA=1`, que fixa o relógio para as datas saírem iguais e a saída poder ser comparada com o gabarito.
+
+## 7. Comparação com o Linux real
+
+Os mesmos cenários foram rodados no bash de um Linux (Ubuntu), com uids 1000/1001/1002 e grupos 100/200 como no simulador. A tabela compara as saídas lado a lado:
+
+| Cenário | Linux real | Simulador |
 | --- | --- | --- |
-| 1 | `erros.h`, `inode`, árvore + `mkdir`/`cd`/`pwd`/`ls`/`tree`, shell básico | 3.1 |
-| 2 | `touch`, `echo`, `cat`, `rm`, `cp`, `mv`, `stat` (conteúdo ainda em `malloc` simples) | 3.2 |
-| 3 | usuários, `su`, `perm_checa` em todas as operações, `chmod`, `chown`, `ls -l` | 3.3 |
-| 4 | `disco.c`: troca o conteúdo em `malloc` por blocos indexados; `blocos`, `df`, `truncate`, `read` | 3.4 |
-| 5 | `ln`, `exec`, `umask`, `chmod` simbólico | bônus |
-| 6 | testes + `make memcheck` zerado | 40% |
-| 7 | README final (teoria ↔ código, comparação Linux), vídeo | 30% + 10% |
+| `ln a.txt b.txt; ls -li` | `680088 -rw-r--r-- 2 ... a.txt` e `680088 ... b.txt` | `7 -rw-r--r-- 2 ... a.txt` e `7 ... b.txt` |
+| `mv b.txt c.txt` | o inode continua 680088 | o inode continua 7 |
+| `cp a.txt d.txt` | `d.txt` ganha um inode novo (680098) | `d.txt` ganha um inode novo (8) |
+| `chmod 640 a.txt`, bob (mesmo grupo) lê | `ola mundo` | `ola mundo` |
+| bob tenta `echo x >> a.txt` | `Permission denied` | `permissão negada` |
+| bob tenta `chmod 777 a.txt` | `Operation not permitted` | `operação não permitida` |
+| carol (outros) tenta ler | `Permission denied` | `permissão negada` |
+| dona com `chmod 077` tenta ler | `Permission denied` | `permissão negada` |
+| diretório 711: `ls p` / `cat p/f` / `touch p/novo` | negado / `y` / negado | negado / `y` / negado |
+| `chmod u+x,go-w` | `-rwxr--r--` | `-rwxr--r--` |
+| `cat nada` | `No such file or directory` | `arquivo ou diretório não encontrado` |
+| `ln p plink` (p é diretório) | `hard link not allowed for directory` | `é um diretório` |
 
-Cada fase termina compilando sem warnings e passando no valgrind — não acumular leaks para o final.
+**Diferenças conhecidas** (simplificações conscientes):
 
----
+- Diretórios não ocupam blocos no disco simulado; o `ls -l` mostra tamanho 0, e não 4096.
+- O `ls` sem `-l` mostra `/` depois dos diretórios (como `ls -F`) e as datas saem como `--time-style=long-iso`.
+- Não há links simbólicos, `cp -r`, setuid/sticky bit nem senha no `su`.
+- O `exec` "interpreta" o programa: cada linha é um comando do próprio simulador, rodado com as permissões de quem o executou. Não executa código de verdade.
+- O `cat` acrescenta uma quebra de linha se o arquivo não terminar com uma, para o prompt não ficar colado.
 
-## 12. Fora de escopo (decisões conscientes)
+## 8. Créditos
 
-Persistência em arquivo real, concorrência/threads, links simbólicos, journaling, cache de blocos,
-diretórios ocupando blocos no disco. Podem ser citados no README final como extensões possíveis.
+- A ideia de menu numerado veio de [eldanielG/mini_fs_linux](https://github.com/eldanielG/mini_fs_linux). Aquele projeto usa o sistema de arquivos real; aqui toda a lógica foi reescrita sobre estruturas simuladas.
+- Esboço da arquitetura e enunciado: disciplina de Sistemas Operacionais, Univali.

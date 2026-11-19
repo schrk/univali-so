@@ -1,0 +1,131 @@
+alice@mfs:/home/alice$ # 3.4 - Alocação indexada: 8 ponteiros diretos + 1 bloco indireto (16 ponteiros)
+alice@mfs:/home/alice$ df
+Disco simulado: 256 blocos de 64 bytes (16384 bytes)
+Usados: 0  Livres: 256  Uso: 0%  Inodes em uso: 6
+Mapa de bits (. livre  # dados  I índice):
+  000 ................................................................
+  064 ................................................................
+  128 ................................................................
+  192 ................................................................
+alice@mfs:/home/alice$ echo "Um arquivo pequeno cabe em um bloco." > pequeno
+alice@mfs:/home/alice$ blocos pequeno
+pequeno: inode 7, 37 bytes em 1 bloco(s) de 64 bytes (alocação indexada)
+  lógico  físico  bytes  conteúdo
+  d[0]         0     37  "Um arquivo pequeno cabe em um bloco.\n"
+alice@mfs:/home/alice$ echo "Este texto tem mais de sessenta e quatro bytes, entao ocupa dois blocos do disco simulado." > medio
+alice@mfs:/home/alice$ blocos medio
+medio: inode 8, 91 bytes em 2 bloco(s) de 64 bytes (alocação indexada)
+  lógico  físico  bytes  conteúdo
+  d[0]         1     64  "Este texto tem mais de sessenta e quatro bytes, entao ocupa dois"
+  d[1]         2     27  " blocos do disco simulado.\n"
+alice@mfs:/home/alice$ stat medio
+  Arquivo: medio
+  Inode: 8      Links: 1    Tipo: texto
+  Tamanho: 91    Blocos: 2   (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [1 2 -1 -1 -1 -1 -1 -1]  Indireto: -1
+alice@mfs:/home/alice$ df
+Disco simulado: 256 blocos de 64 bytes (16384 bytes)
+Usados: 3  Livres: 253  Uso: 1%  Inodes em uso: 8
+Mapa de bits (. livre  # dados  I índice):
+  000 ###.............................................................
+  064 ................................................................
+  128 ................................................................
+  192 ................................................................
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 > grande
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 >> grande
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 >> grande
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 >> grande
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 >> grande
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 >> grande
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 >> grande
+alice@mfs:/home/alice$ echo -n 0123456789012345678901234567890123456789012345678901234567890123 >> grande
+alice@mfs:/home/alice$ blocos grande
+grande: inode 9, 512 bytes em 8 bloco(s) de 64 bytes (alocação indexada)
+  lógico  físico  bytes  conteúdo
+  d[0]         3     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[1]         4     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[2]         5     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[3]         6     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[4]         7     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[5]         8     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[6]         9     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[7]        10     64  "0123456789012345678901234567890123456789012345678901234567890123"
+alice@mfs:/home/alice$ echo FIM >> grande
+alice@mfs:/home/alice$ blocos grande
+grande: inode 9, 516 bytes em 9 bloco(s) de 64 bytes (alocação indexada)
+  lógico  físico  bytes  conteúdo
+  d[0]         3     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[1]         4     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[2]         5     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[3]         6     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[4]         7     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[5]         8     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[6]         9     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[7]        10     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  ind[0]      12      4  "FIM\n"
+  bloco de índices (indireto) = 11 -> [12]
+alice@mfs:/home/alice$ stat grande
+  Arquivo: grande
+  Inode: 9      Links: 1    Tipo: texto
+  Tamanho: 516   Blocos: 9   (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [3 4 5 6 7 8 9 10]  Indireto: 11
+alice@mfs:/home/alice$ df
+Disco simulado: 256 blocos de 64 bytes (16384 bytes)
+Usados: 13  Livres: 243  Uso: 5%  Inodes em uso: 9
+Mapa de bits (. livre  # dados  I índice):
+  000 ###########I#...................................................
+  064 ................................................................
+  128 ................................................................
+  192 ................................................................
+alice@mfs:/home/alice$ # reposicionar no meio do arquivo (atravessa blocos)
+alice@mfs:/home/alice$ read grande 60 10
+0123012345
+alice@mfs:/home/alice$ # truncar libera blocos (inclusive o de índices)
+alice@mfs:/home/alice$ truncate -s 100 grande
+alice@mfs:/home/alice$ blocos grande
+grande: inode 9, 100 bytes em 2 bloco(s) de 64 bytes (alocação indexada)
+  lógico  físico  bytes  conteúdo
+  d[0]         3     64  "0123456789012345678901234567890123456789012345678901234567890123"
+  d[1]         4     36  "012345678901234567890123456789012345"
+alice@mfs:/home/alice$ df
+Disco simulado: 256 blocos de 64 bytes (16384 bytes)
+Usados: 5  Livres: 251  Uso: 1%  Inodes em uso: 9
+Mapa de bits (. livre  # dados  I índice):
+  000 #####...........................................................
+  064 ................................................................
+  128 ................................................................
+  192 ................................................................
+alice@mfs:/home/alice$ # remover libera o inode e os blocos
+alice@mfs:/home/alice$ rm medio
+alice@mfs:/home/alice$ df
+Disco simulado: 256 blocos de 64 bytes (16384 bytes)
+Usados: 3  Livres: 253  Uso: 1%  Inodes em uso: 8
+Mapa de bits (. livre  # dados  I índice):
+  000 #..##...........................................................
+  064 ................................................................
+  128 ................................................................
+  192 ................................................................
+alice@mfs:/home/alice$ # limite do inode: 24 blocos = 1536 bytes
+alice@mfs:/home/alice$ truncate -s 1536 grande
+alice@mfs:/home/alice$ stat grande
+  Arquivo: grande
+  Inode: 9      Links: 1    Tipo: binário
+  Tamanho: 1536  Blocos: 24  (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [3 4 2 5 6 7 8 9]  Indireto: 1
+alice@mfs:/home/alice$ truncate -s 1537 grande
+truncate: grande: arquivo grande demais (limite do inode: 1536 bytes)
+alice@mfs:/home/alice$ echo x >> grande
+echo: grande: arquivo grande demais (limite do inode: 1536 bytes)
+alice@mfs:/home/alice$ 

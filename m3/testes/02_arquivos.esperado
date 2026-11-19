@@ -1,0 +1,93 @@
+alice@mfs:/home/alice$ # 3.2 - FCB e operações: criar, escrever, ler, reposicionar, truncar, copiar, mover, excluir
+alice@mfs:/home/alice$ touch vazio.txt
+alice@mfs:/home/alice$ echo "ola mundo" > a.txt
+alice@mfs:/home/alice$ cat a.txt
+ola mundo
+alice@mfs:/home/alice$ echo "segunda linha" >> a.txt
+alice@mfs:/home/alice$ cat a.txt
+ola mundo
+segunda linha
+alice@mfs:/home/alice$ read a.txt 4 5
+mundo
+alice@mfs:/home/alice$ stat a.txt
+  Arquivo: a.txt
+  Inode: 8      Links: 1    Tipo: texto
+  Tamanho: 24    Blocos: 1   (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [0 -1 -1 -1 -1 -1 -1 -1]  Indireto: -1
+alice@mfs:/home/alice$ echo 12345 > numeros
+alice@mfs:/home/alice$ echo -e "#!mfs\necho rodando" > prog
+alice@mfs:/home/alice$ echo -e "\x01\x02\x03" > dados.bin
+alice@mfs:/home/alice$ stat numeros
+  Arquivo: numeros
+  Inode: 9      Links: 1    Tipo: numérico
+  Tamanho: 6     Blocos: 1   (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [1 -1 -1 -1 -1 -1 -1 -1]  Indireto: -1
+alice@mfs:/home/alice$ stat prog
+  Arquivo: prog
+  Inode: 10     Links: 1    Tipo: programa
+  Tamanho: 19    Blocos: 1   (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [2 -1 -1 -1 -1 -1 -1 -1]  Indireto: -1
+alice@mfs:/home/alice$ stat dados.bin
+  Arquivo: dados.bin
+  Inode: 11     Links: 1    Tipo: binário
+  Tamanho: 4     Blocos: 1   (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [3 -1 -1 -1 -1 -1 -1 -1]  Indireto: -1
+alice@mfs:/home/alice$ truncate -s 3 a.txt
+alice@mfs:/home/alice$ cat a.txt
+ola
+alice@mfs:/home/alice$ truncate -s 0 a.txt
+alice@mfs:/home/alice$ stat a.txt
+  Arquivo: a.txt
+  Inode: 8      Links: 1    Tipo: texto
+  Tamanho: 0     Blocos: 0   (bloco = 64 bytes)
+  Acesso: (0644/-rw-r--r--)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [-1 -1 -1 -1 -1 -1 -1 -1]  Indireto: -1
+alice@mfs:/home/alice$ echo "conteudo" > a.txt
+alice@mfs:/home/alice$ cp a.txt copia.txt
+alice@mfs:/home/alice$ mv copia.txt renomeado.txt
+alice@mfs:/home/alice$ mkdir pasta
+alice@mfs:/home/alice$ mv renomeado.txt pasta
+alice@mfs:/home/alice$ cp a.txt pasta/
+alice@mfs:/home/alice$ ls -li . pasta
+.:
+  8 -rw-r--r--  1 alice  dev            9 2025-11-19 14:00 a.txt
+ 11 -rw-r--r--  1 alice  dev            4 2025-11-19 14:00 dados.bin
+  9 -rw-r--r--  1 alice  dev            6 2025-11-19 14:00 numeros
+ 13 drwxr-xr-x  2 alice  dev            0 2025-11-19 14:00 pasta/
+ 10 -rw-r--r--  1 alice  dev           19 2025-11-19 14:00 prog
+  7 -rw-r--r--  1 alice  dev            0 2025-11-19 14:00 vazio.txt
+
+pasta:
+ 14 -rw-r--r--  1 alice  dev            9 2025-11-19 14:00 a.txt
+ 12 -rw-r--r--  1 alice  dev            9 2025-11-19 14:00 renomeado.txt
+alice@mfs:/home/alice$ ls -li pasta
+ 14 -rw-r--r--  1 alice  dev            9 2025-11-19 14:00 a.txt
+ 12 -rw-r--r--  1 alice  dev            9 2025-11-19 14:00 renomeado.txt
+alice@mfs:/home/alice$ cat pasta/a.txt
+conteudo
+alice@mfs:/home/alice$ rm vazio.txt
+alice@mfs:/home/alice$ rm pasta
+rm: pasta: é um diretório
+alice@mfs:/home/alice$ rm -r pasta
+alice@mfs:/home/alice$ ls
+a.txt  dados.bin  numeros  prog
+alice@mfs:/home/alice$ 

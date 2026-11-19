@@ -1,0 +1,31 @@
+# 3.2 - FCB e operações: criar, escrever, ler, reposicionar, truncar, copiar, mover, excluir
+touch vazio.txt
+echo "ola mundo" > a.txt
+cat a.txt
+echo "segunda linha" >> a.txt
+cat a.txt
+read a.txt 4 5
+stat a.txt
+echo 12345 > numeros
+echo -e "#!mfs\necho rodando" > prog
+echo -e "\x01\x02\x03" > dados.bin
+stat numeros
+stat prog
+stat dados.bin
+truncate -s 3 a.txt
+cat a.txt
+truncate -s 0 a.txt
+stat a.txt
+echo "conteudo" > a.txt
+cp a.txt copia.txt
+mv copia.txt renomeado.txt
+mkdir pasta
+mv renomeado.txt pasta
+cp a.txt pasta/
+ls -li . pasta
+ls -li pasta
+cat pasta/a.txt
+rm vazio.txt
+rm pasta
+rm -r pasta
+ls

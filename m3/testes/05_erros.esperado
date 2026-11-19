@@ -1,0 +1,86 @@
+alice@mfs:/home/alice$ # 5.3 - Tratamento de erros
+alice@mfs:/home/alice$ cat nao_existe
+cat: nao_existe: arquivo ou diretório não encontrado
+alice@mfs:/home/alice$ cd nao_existe
+cd: nao_existe: arquivo ou diretório não encontrado
+alice@mfs:/home/alice$ mkdir /home/alice
+mkdir: /home/alice: arquivo já existe
+alice@mfs:/home/alice$ mkdir "com espaco"
+mkdir: com espaco: nome inválido (use 1 a 32 caracteres: letras, dígitos, '.', '_' ou '-')
+alice@mfs:/home/alice$ mkdir nome_com_mais_de_trinta_e_dois_caracteres
+mkdir: nome_com_mais_de_trinta_e_dois_caracteres: nome inválido (use 1 a 32 caracteres: letras, dígitos, '.', '_' ou '-')
+alice@mfs:/home/alice$ touch a/b
+touch: a/b: arquivo ou diretório não encontrado
+alice@mfs:/home/alice$ touch ok
+alice@mfs:/home/alice$ cd ok
+cd: ok: não é um diretório
+alice@mfs:/home/alice$ mkdir ok/sub
+mkdir: ok/sub: não é um diretório
+alice@mfs:/home/alice$ cat /home
+cat: /home: é um diretório
+alice@mfs:/home/alice$ echo x > /home
+echo: /home: é um diretório
+alice@mfs:/home/alice$ rmdir ok
+rmdir: ok: não é um diretório
+alice@mfs:/home/alice$ mkdir d
+alice@mfs:/home/alice$ touch d/f
+alice@mfs:/home/alice$ rmdir d
+rmdir: d: diretório não vazio
+alice@mfs:/home/alice$ rm d
+rm: d: é um diretório
+alice@mfs:/home/alice$ mkdir vazio
+alice@mfs:/home/alice$ cd vazio
+alice@mfs:/home/alice/vazio$ rmdir /home/alice/vazio
+rmdir: /home/alice/vazio: diretório em uso (é o diretório atual ou um ancestral dele)
+alice@mfs:/home/alice/vazio$ cd ..
+alice@mfs:/home/alice$ cd d
+alice@mfs:/home/alice/d$ rm -r /home/alice/d
+rm: /home/alice/d: diretório em uso (é o diretório atual ou um ancestral dele)
+alice@mfs:/home/alice/d$ cd ..
+alice@mfs:/home/alice$ mv d d/dentro
+mv: d: operação não permitida
+alice@mfs:/home/alice$ mv /tmp /x
+mv: /tmp: permissão negada
+alice@mfs:/home/alice$ rm /
+rm: /: operação não permitida
+alice@mfs:/home/alice$ cp d e
+cp: d: é um diretório
+alice@mfs:/home/alice$ cp ok ok
+cp: ok: operação não permitida
+alice@mfs:/home/alice$ ln d dlink
+ln: d: é um diretório
+alice@mfs:/home/alice$ ln ok ok
+ln: ok: arquivo já existe
+alice@mfs:/home/alice$ chmod abc ok
+chmod: abc: argumento inválido
+alice@mfs:/home/alice$ chmod 1777 ok
+chmod: 1777: argumento inválido
+alice@mfs:/home/alice$ chown fulano ok
+chown: fulano: usuário ou grupo inexistente
+alice@mfs:/home/alice$ su fulano
+su: fulano: usuário ou grupo inexistente
+alice@mfs:/home/alice$ read ok -1 2
+uso: read arq offset n
+alice@mfs:/home/alice$ truncate ok 10
+uso: truncate -s tamanho arq
+alice@mfs:/home/alice$ ls -z
+uso: ls [-l] [-i] [caminho]
+alice@mfs:/home/alice$ cat ok > outro
+cat: redirecionamento só é suportado no echo
+alice@mfs:/home/alice$ echo "aspas abertas
+erro: aspas não fechadas
+alice@mfs:/home/alice$ comando_inexistente
+comando_inexistente: comando não encontrado (digite help)
+alice@mfs:/home/alice$ mkdir
+uso: mkdir [-p] dir...
+alice@mfs:/home/alice$ cp um
+uso: cp origem destino
+alice@mfs:/home/alice$ echo -e "nao e programa" > np
+alice@mfs:/home/alice$ chmod +x np
+alice@mfs:/home/alice$ ./np
+exec: ./np: não é um programa executável (precisa começar com #!)
+alice@mfs:/home/alice$ echo -e "#!mfs\n./loop" > loop
+alice@mfs:/home/alice$ chmod +x loop
+alice@mfs:/home/alice$ ./loop
+exec: ./loop: limite de 8 programas aninhados atingido
+alice@mfs:/home/alice$ 

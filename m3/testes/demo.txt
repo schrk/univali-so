@@ -1,0 +1,64 @@
+# ================= Roteiro da apresentação (make demo) =================
+# 1) Árvore de diretórios (3.1)
+whoami
+pwd
+tree /
+mkdir -p projetos/so/m3
+cd projetos/so
+pwd
+cd ../..
+tree
+# 2) Arquivo, FCB e operações básicas (3.2)
+echo "Sistemas Operacionais - M3" > leia.txt
+echo "Mini sistema de arquivos em memória" >> leia.txt
+cat leia.txt
+stat leia.txt
+read leia.txt 0 19
+truncate -s 27 leia.txt
+cat leia.txt
+# 3) cp x mv x ln: olhe o número do inode (1ª coluna)
+cp leia.txt copia.txt
+mv copia.txt projetos/renomeado.txt
+ln leia.txt atalho.txt
+ls -li . projetos
+echo "escrito pelo atalho" > atalho.txt
+cat leia.txt
+rm leia.txt
+cat atalho.txt
+inodes
+# 4) Permissões RWX com bitmask (3.3)
+echo "salario: 1000" > salario.txt
+chmod 640 salario.txt
+ls -l salario.txt
+su bob
+id
+cat /home/alice/salario.txt
+echo "hack" >> /home/alice/salario.txt
+su carol
+id
+cat /home/alice/salario.txt
+su alice
+chmod u+x,g-r salario.txt
+ls -l salario.txt
+chmod 644 salario.txt
+echo -e "#!mfs\necho ola, eu sou um programa\nwhoami" > ola
+./ola
+chmod +x ola
+./ola
+# 5) Blocos e alocação indexada (3.4)
+df
+echo "Este texto passa de sessenta e quatro bytes, entao vai ser dividido em mais de um bloco." > texto
+blocos texto
+echo "Bloco 1: um texto com exatamente sessenta e quatro caracteres.." > grande
+echo "Bloco 2: um texto com exatamente sessenta e quatro caracteres.." >> grande
+echo "Bloco 3: um texto com exatamente sessenta e quatro caracteres.." >> grande
+echo "Bloco 4: um texto com exatamente sessenta e quatro caracteres.." >> grande
+echo "Bloco 5: um texto com exatamente sessenta e quatro caracteres.." >> grande
+echo "Bloco 6: um texto com exatamente sessenta e quatro caracteres.." >> grande
+echo "Bloco 7: um texto com exatamente sessenta e quatro caracteres.." >> grande
+echo "Bloco 8: um texto com exatamente sessenta e quatro caracteres.." >> grande
+echo "Bloco 9 usa o ponteiro indireto" >> grande
+blocos grande
+df
+rm grande
+df

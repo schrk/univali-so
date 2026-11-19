@@ -1,0 +1,440 @@
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Nome do diretório: 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Diretório (.. sobe, / raiz): 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Nome do arquivo: 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: Conteúdo (\n quebra linha): 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: Conteúdo (\n quebra linha): 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: primeira linha
+segunda linha
+terceira linha
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: Posição (offset): Quantidade de bytes:  linha
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: Modo (ex.: 640 ou u+x): 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: -rw-------  1 alice  dev           44 2025-11-19 14:00 leia.txt
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Caminho:   Arquivo: leia.txt
+  Inode: 8      Links: 1    Tipo: texto
+  Tamanho: 44    Blocos: 1   (bloco = 64 bytes)
+  Acesso: (0600/-rw-------)  Uid: (1000/alice)  Gid: (100/dev)
+  Criado:     2025-11-19 14:00:00
+  Modificado: 2025-11-19 14:00:00
+  Acessado:   2025-11-19 14:00:00
+  Diretos: [0 -1 -1 -1 -1 -1 -1 -1]  Indireto: -1
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: leia.txt: inode 8, 44 bytes em 1 bloco(s) de 64 bytes (alocação indexada)
+  lógico  físico  bytes  conteúdo
+  d[0]         0     44  "primeira linha\nsegunda linha\nterceira linha\n"
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Origem: Destino: 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Origem: Destino: 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo existente: Novo nome: 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção:   id  tipo        links  tamanho  blocos  dono
+  1   diretório       1        0       0  root
+  2   diretório       1        0       0  root
+  3   diretório       1        0       0  alice
+  4   diretório       1        0       0  bob
+  5   diretório       1        0       0  carol
+  6   diretório       1        0       0  root
+  7   diretório       1        0       0  alice
+  8   texto           2       44       1  alice
+  9   texto           1       44       1  alice
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Usuário (root, alice, bob, carol): 
+=== Mini File System (M3) ===   [bob@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: cat: leia.txt: permissão negada
+
+=== Mini File System (M3) ===   [bob@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Usuário (root, alice, bob, carol): 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Arquivo: 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice/docs$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Diretório (.. sobe, / raiz): 
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: .
+└── docs/
+    ├── leia.txt
+    └── nova.txt
+
+1 diretórios, 2 arquivos
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Terminal do MFS. 'help' lista os comandos, 'menu' volta ao menu, 'exit' sai.
+alice@mfs:/home/alice$ pwd
+/home/alice
+alice@mfs:/home/alice$ ls -l docs
+-rw-------  1 alice  dev           44 2025-11-19 14:00 leia.txt
+-rw-------  1 alice  dev           44 2025-11-19 14:00 nova.txt
+alice@mfs:/home/alice$ menu
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Opção inválida. Tente de novo.
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Opção inválida. Tente de novo.
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Disco simulado: 256 blocos de 64 bytes (16384 bytes)
+Usados: 2  Livres: 254  Uso: 0%  Inodes em uso: 9
+Mapa de bits (. livre  # dados  I índice):
+  000 ##..............................................................
+  064 ................................................................
+  128 ................................................................
+  192 ................................................................
+
+=== Mini File System (M3) ===   [alice@mfs:/home/alice$ ]
+  1. Criar diretório (mkdir)                13. Remover arquivo (rm)
+  2. Mudar de diretório (cd)                14. Remover diretório vazio (rmdir)
+  3. Listar diretório (ls -l)               15. Criar hard link (ln)
+  4. Árvore de diretórios (tree)            16. Alterar permissões (chmod)
+  5. Criar arquivo (touch)                  17. Alterar dono (chown, só root)
+  6. Escrever no arquivo (echo >)           18. Ver metadados / FCB (stat)
+  7. Acrescentar ao arquivo (echo >>)       19. Ver blocos do arquivo (blocos)
+  8. Ler arquivo (cat)                      20. Uso do disco (df)
+  9. Ler a partir de uma posição (read)     21. Tabela de inodes (inodes)
+ 10. Truncar arquivo (truncate)             22. Trocar de usuário (su)
+ 11. Copiar (cp)                            23. Executar programa (exec)
+ 12. Mover/renomear (mv)                    24. Abrir terminal (comandos Linux)
+  0. Sair
+Escolha uma opção: Saindo do Mini File System.
